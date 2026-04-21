@@ -980,7 +980,7 @@ function evtPos(e) {
   return {x:s.clientX-r.left, y:s.clientY-r.top};
 }
 
-canvas.addEventListener('mousedown', e => {
+function onPointerDown(e) {
   const {x,y} = evtPos(e);
   const connKey = hitTestConnector(x,y);
   if (connKey) { selectConnector(connKey); return; }
@@ -992,9 +992,9 @@ canvas.addEventListener('mousedown', e => {
     return;
   }
   clearSelection();
-});
+}
 
-canvas.addEventListener('mousemove', e => {
+function onPointerMove(e) {
   const {x,y} = evtPos(e);
   if (!dragging) {
     const connKey = hitTestConnector(x,y);
@@ -1010,10 +1010,21 @@ canvas.addEventListener('mousemove', e => {
   else { c.r=Math.max(15,dragging.cr+dx); syncProps(); }
   updateListRadii();
   draw();
-});
+}
 
-canvas.addEventListener('mouseup',    () => { dragging=null; });
-canvas.addEventListener('mouseleave', () => { dragging=null; });
+function onPointerUp() { dragging=null; }
+
+// Mouse
+canvas.addEventListener('mousedown',  onPointerDown);
+canvas.addEventListener('mousemove',  onPointerMove);
+canvas.addEventListener('mouseup',    onPointerUp);
+canvas.addEventListener('mouseleave', onPointerUp);
+
+// Touch — preventDefault stops the page scrolling while dragging on canvas
+canvas.addEventListener('touchstart',  e => { e.preventDefault(); onPointerDown(e); }, { passive: false });
+canvas.addEventListener('touchmove',   e => { e.preventDefault(); onPointerMove(e); }, { passive: false });
+canvas.addEventListener('touchend',    e => { e.preventDefault(); onPointerUp();    }, { passive: false });
+canvas.addEventListener('touchcancel', e => { onPointerUp(); });
 
 // ── Selection ──────────────────────────────────────────────────────────────────
 
