@@ -807,11 +807,15 @@ function buildPath(cs) {
     d += `A ${f(c.r)} ${f(c.r)} 0 ${la} 1 ${f(exitPt.x)} ${f(exitPt.y)} `;
 
     const key = `${c.id}_${nc.id}`;
-    d += connectorCmd(exitPt, c, nextEntry, nc, getT(key), ctr);
+    const connCmd = connectorCmd(exitPt, c, nextEntry, nc, getT(key), ctr);
+    d += connCmd;
+    // Build a per-segment Path2D so touch hit-testing can use isPointInStroke
+    const segPath = new Path2D(`M ${f(exitPt.x)} ${f(exitPt.y)} ` + connCmd);
 
     segMeta.push({
       key,
       mid: { x:(exitPt.x+nextEntry.x)/2, y:(exitPt.y+nextEntry.y)/2 },
+      path: segPath,
     });
   }
   d += 'Z';
@@ -976,27 +980,59 @@ function draw() {
   lastSegs.forEach(seg => {
     const {mid, key} = seg;
     const isSel    = key === selConnKey;
+    const isDragging = dragging && dragging.type === 'connector' && dragging.key === key;
     const hasCurve = getT(key) > 0.01;
-    const size = 5;
+    const size = isDragging ? 7 : 5;
     ctx.save();
     ctx.translate(mid.x, mid.y);
     ctx.rotate(Math.PI/4);
     ctx.beginPath();
     ctx.rect(-size/2, -size/2, size, size);
-    ctx.fillStyle   = isSel ? '#E61919' : hasCurve ? 'rgba(13,13,13,0.55)' : '#FFFFFF';
-    ctx.strokeStyle = isSel ? '#E61919' : 'rgba(13,13,13,0.4)';
-    ctx.lineWidth   = 1;
+    ctx.fillStyle   = (isSel || isDragging) ? '#E61919' : hasCurve ? 'rgba(13,13,13,0.55)' : '#FFFFFF';
+    ctx.strokeStyle = (isSel || isDragging) ? '#E61919' : 'rgba(13,13,13,0.4)';
+    ctx.lineWidth   = isDragging ? 1.5 : 1;
     ctx.fill();
     ctx.stroke();
     ctx.restore();
   });
+
+  // Live flow readout while drag-adjusting a connector on touch
+  if (dragging && dragging.type === 'connector') {
+    const seg = lastSegs.find(s => s.key === dragging.key);
+    if (seg) {
+      const pct   = Math.round(getT(dragging.key) * 100);
+      const label = `FLOW  ${pct}%`;
+      const lx = seg.mid.x, ly = seg.mid.y - 22;
+      ctx.save();
+      ctx.font = `700 10px 'Space Mono', monospace`;
+      const tw = ctx.measureText(label).width + 14;
+      // Background pill
+      ctx.fillStyle = '#0D0D0D';
+      ctx.fillRect(lx - tw / 2, ly - 10, tw, 20);
+      // Text in red
+      ctx.fillStyle   = '#E61919';
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, lx, ly);
+      ctx.restore();
+    }
+  }
 }
 
 // ── Interaction ────────────────────────────────────────────────────────────────
 
-function hitTestConnector(x, y, hitR=10) {
+function hitTestConnector(x, y, hitR=10, isTouch=false) {
   for (const seg of lastSegs) {
+    // Always: hit the diamond handle
     if (Math.hypot(x-seg.mid.x, y-seg.mid.y) <= hitR) return seg.key;
+    // On touch: also accept a tap anywhere along the connector curve line
+    if (isTouch && seg.path) {
+      ctx.save();
+      ctx.lineWidth = 28;   // fat invisible stroke for finger hit area
+      const onCurve = ctx.isPointInStroke(seg.path, x, y);
+      ctx.restore();
+      if (onCurve) return seg.key;
+    }
   }
   return null;
 }
@@ -1027,8 +1063,15 @@ function onPointerDown(e) {
   const {x,y} = evtPos(e);
   const isTouch = !!e.touches;
   const hitR = isTouch ? 30 : 10;
-  const connKey = hitTestConnector(x, y, hitR);
-  if (connKey) { selectConnector(connKey); return; }
+  const connKey = hitTestConnector(x, y, hitR, isTouch);
+  if (connKey) {
+    selectConnector(connKey);
+    if (isTouch) {
+      // On touch: drag immediately adjusts flow — no sidebar needed
+      dragging = { type: 'connector', key: connKey, sy: y, t0: getT(connKey) };
+    }
+    return;
+  }
   const hit = hitTestCircle(x, y, hitR);
   if (hit) {
     const c = circles.find(c=>c.id===hit.id);
@@ -1051,10 +1094,27 @@ function onPointerMove(e) {
     }
     return;
   }
-  const dx=x-dragging.sx, dy=y-dragging.sy;
-  const c=circles.find(c=>c.id===dragging.id);
+
+  // ── Connector drag-to-flow (touch only) ────────────────────
+  if (dragging.type === 'connector') {
+    const dy = -(y - dragging.sy);                         // up = positive
+    const newT = Math.min(1, Math.max(0, dragging.t0 + dy / 120));
+    setT(dragging.key, newT);
+    // Keep sidebar slider in sync if open
+    const pct = Math.round(newT * 100);
+    const sl = document.getElementById('curveSlider');
+    const inp = document.getElementById('curveInput');
+    if (sl)  sl.value  = pct;
+    if (inp) inp.value = pct;
+    draw();
+    return;
+  }
+
+  // ── Circle drag ─────────────────────────────────────────────
+  const dx = x - dragging.sx, dy2 = y - dragging.sy;
+  const c = circles.find(c=>c.id===dragging.id);
   if (!c) return;
-  if (dragging.type==='center') { c.x=dragging.cx+dx; c.y=dragging.cy+dy; }
+  if (dragging.type==='center') { c.x=dragging.cx+dx; c.y=dragging.cy+dy2; }
   else { c.r=Math.max(15,dragging.cr+dx); syncProps(); }
   updateListRadii();
   draw();
