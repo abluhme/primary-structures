@@ -175,16 +175,6 @@ canvas { display: block; }
 
   <div style="margin-top:auto; display:flex; flex-direction:column; gap:0">
     <div class="s-rule"></div>
-    <!-- Global smoothing -->
-    <div class="prop-section" style="margin-bottom:14px">
-      <div class="s-label">Global</div>
-      <div class="prop-row">
-        <span class="p-label">Smoothing</span>
-        <input type="range" id="smoothingSlider" min="0" max="100" value="0">
-        <input type="number" id="smoothingInput" min="0" max="100" value="0">
-      </div>
-    </div>
-    <div class="s-rule"></div>
     <button class="s-btn export-btn" id="btnExport">↓ &thinsp;Export SVG</button>
     <div id="status"></div>
   </div>
@@ -208,10 +198,7 @@ let dragging   = null;
 let selCircleId   = null;
 let selConnKey    = null;
 
-// Global smoothing (0–1): drives G2 curvature continuity at circle junctions
-let globalSmoothing = 0;
-
-// Per-connector tension: Map<key, 0..1>
+// Per-connector flow: Map<key, 0..1>
 const segTensions = new Map();
 const getT  = k  => segTensions.get(k) ?? 0;
 const setT  = (k, v) => segTensions.set(k, v);
@@ -264,112 +251,34 @@ function cwTan(pt, center) {
   return { x: ry/len, y: -rx/len };
 }
 
-// Two-segment cubic Bézier connector.
+// Single cubic Bézier connector — G1 with both circles, unconditionally.
 //
-// Splits at a midpoint anchor pulled inward by tension.
-// The circle-end handles (cp1, cp4) are pinned along the CW tangent — G1 is
-// unconditionally preserved with the arcs.
+// cp1 = exitPt   + k · t1   (handle along CW tangent of circle c)
+// cp2 = nextEntry − k · t2   (handle along CW tangent of circle nc, reversed)
 //
-// ── Flow (tension) ────────────────────────────────────────────────────────────
-// Maximum safe inward displacement is computed analytically:
-//   • Condition A: dot(t1, mid − exitPt)  > 0
-//   • Condition B: dot(t2, nextEntry − mid) > 0
-// When either would be violated the Bézier loops, breaking G1.
-// tension=1.0 maps to exactly the safe maximum.
+// This is one cubic, no interior split, no midpoint to displace.
+// G1 at both circle junctions is guaranteed for any value of k ≥ 0:
+//   • The arc on circle c ends at exitPt   going in direction t1
+//   • The connector starts at exitPt   going in direction t1   ✓
+//   • The connector ends   at nextEntry going in direction t2
+//   • The arc on circle nc starts at nextEntry going in direction t2 ✓
 //
-// ── Smoothing (G2 curvature continuity) ──────────────────────────────────────
-// For a cubic Bézier C(t) at exitPt:
-//   C'(0) = 3·kCircle·t1   (G1 already satisfied)
-//   C''(0) = 6·(cp2 − exitPt − 2·kCircle·t1)
-// The curvature vector must equal (1/r)·n_in, yielding:
-//   (cp2 − exitPt)·n_in = 3·kCircle² / (2·r)     ← G2 condition
-// We shift cp2 (and symmetrically cp3) purely along their inward normals
-// to satisfy this, then project the split midpoint onto the cp2→cp3 line
-// to restore G1 at the interior join.
+// flow (0–1) scales k.  At flow=0 the connector is a straight line.
+// At flow=1 the handles are ~40% of the segment length — a generous sweep.
 //
-function connectorCmd(exitPt, c, nextEntry, nc, tension, ctr, smoothing) {
+function connectorCmd(exitPt, c, nextEntry, nc, flow) {
   const segDx = nextEntry.x - exitPt.x, segDy = nextEntry.y - exitPt.y;
   const segLen = Math.hypot(segDx, segDy);
   if (segLen < 1e-6) return `L ${f(nextEntry.x)} ${f(nextEntry.y)} `;
 
-  const ux = segDx / segLen, uy = segDy / segLen;
-
-  // CW tangents — pinned, never displaced
   const t1 = cwTan(exitPt,    c);
   const t2 = cwTan(nextEntry, nc);
 
-  // Geometric midpoint (displacement base)
-  const mx = (exitPt.x + nextEntry.x) / 2;
-  const my = (exitPt.y + nextEntry.y) / 2;
-  let midX = mx, midY = my;
+  const k    = flow * segLen * 0.4;
+  const cp1x = exitPt.x    + k * t1.x,  cp1y = exitPt.y    + k * t1.y;
+  const cp2x = nextEntry.x - k * t2.x,  cp2y = nextEntry.y - k * t2.y;
 
-  if (tension > 0) {
-    // Inward perpendicular (toward centroid)
-    const px = -uy, py = ux;
-    const inward = (px * (ctr.x - mx) + py * (ctr.y - my)) > 0 ? 1 : -1;
-
-    // Condition A: dot(t1, mid − exitPt) > 0
-    const A_val   = t1.x*(mx - exitPt.x) + t1.y*(my - exitPt.y);
-    const A_slope = inward * (t1.x*px + t1.y*py);
-
-    // Condition B: dot(t2, nextEntry − mid) > 0
-    const B_val   = t2.x*(nextEntry.x - mx) + t2.y*(nextEntry.y - my);
-    const B_slope = -inward * (t2.x*px + t2.y*py);
-
-    let dispMax = segLen * 0.42;
-    if (A_slope < 0) dispMax = Math.min(dispMax, A_val > 0 ? A_val / -A_slope : 0);
-    if (B_slope < 0) dispMax = Math.min(dispMax, B_val > 0 ? B_val / -B_slope : 0);
-
-    const disp = tension * dispMax * 0.95;
-    midX = mx + inward * px * disp;
-    midY = my + inward * py * disp;
-  }
-
-  // Handle lengths
-  const kCircle = segLen * 0.28;
-  const kMid    = Math.hypot(midX - exitPt.x, midY - exitPt.y) * 0.38;
-
-  // G1 baseline control points
-  let cp1x = exitPt.x    + kCircle * t1.x,  cp1y = exitPt.y    + kCircle * t1.y;
-  let cp2x = midX        - kMid    * ux,     cp2y = midY        - kMid    * uy;
-  let cp3x = midX        + kMid    * ux,     cp3y = midY        + kMid    * uy;
-  let cp4x = nextEntry.x - kCircle * t2.x,   cp4y = nextEntry.y - kCircle * t2.y;
-
-  // ── G2 smoothing ────────────────────────────────────────────────────────────
-  if (smoothing > 0) {
-    // Inward unit normals (from circle surface toward centre)
-    const n1x = (c.x    - exitPt.x)    / c.r,    n1y = (c.y    - exitPt.y)    / c.r;
-    const n2x = (nc.x   - nextEntry.x) / nc.r,   n2y = (nc.y   - nextEntry.y) / nc.r;
-
-    // G2 at exitPt: (cp2 − exitPt)·n1 = 3·kCircle²/(2·c.r)
-    const beta1_target  = 3 * kCircle * kCircle / (2 * c.r);
-    const beta1_current = (cp2x - exitPt.x) * n1x + (cp2y - exitPt.y) * n1y;
-    const d1 = smoothing * (beta1_target - beta1_current);
-    cp2x += d1 * n1x;
-    cp2y += d1 * n1y;
-
-    // G2 at nextEntry: (cp3 − nextEntry)·n2 = 3·kCircle²/(2·nc.r)
-    const beta2_target  = 3 * kCircle * kCircle / (2 * nc.r);
-    const beta2_current = (cp3x - nextEntry.x) * n2x + (cp3y - nextEntry.y) * n2y;
-    const d2 = smoothing * (beta2_target - beta2_current);
-    cp3x += d2 * n2x;
-    cp3y += d2 * n2y;
-
-    // Restore G1 at interior split: project midpoint onto line through cp2→cp3
-    const ldx = cp3x - cp2x, ldy = cp3y - cp2y;
-    const llen2 = ldx * ldx + ldy * ldy;
-    if (llen2 > 1e-12) {
-      const t  = ((midX - cp2x) * ldx + (midY - cp2y) * ldy) / llen2;
-      const px = cp2x + t * ldx, py = cp2y + t * ldy;
-      midX += smoothing * (px - midX);
-      midY += smoothing * (py - midY);
-    }
-  }
-
-  return (
-    `C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(midX)} ${f(midY)} ` +
-    `C ${f(cp3x)} ${f(cp3y)} ${f(cp4x)} ${f(cp4y)} ${f(nextEntry.x)} ${f(nextEntry.y)} `
-  );
+  return `C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(nextEntry.x)} ${f(nextEntry.y)} `;
 }
 
 function buildPath(cs) {
@@ -411,7 +320,7 @@ function buildPath(cs) {
 
     // Connector key: ordered circle IDs
     const key = `${c.id}_${nc.id}`;
-    d += connectorCmd(exitPt, c, nextEntry, nc, getT(key), ctr, globalSmoothing);
+    d += connectorCmd(exitPt, c, nextEntry, nc, getT(key));
 
     // Stable midpoint handle position (geometric midpoint of tangent points)
     segMeta.push({
@@ -675,18 +584,6 @@ document.getElementById('curveInput').addEventListener('input', e => {
   if (!selConnKey) return;
   const v=Math.max(0,Math.min(100,+e.target.value||0)); setT(selConnKey, v/100);
   document.getElementById('curveSlider').value=v; draw();
-});
-
-document.getElementById('smoothingSlider').addEventListener('input', e => {
-  globalSmoothing = +e.target.value / 100;
-  document.getElementById('smoothingInput').value = e.target.value;
-  draw();
-});
-document.getElementById('smoothingInput').addEventListener('input', e => {
-  const v = Math.max(0, Math.min(100, +e.target.value || 0));
-  globalSmoothing = v / 100;
-  document.getElementById('smoothingSlider').value = v;
-  draw();
 });
 
 document.getElementById('btnExport').addEventListener('click', () => {
