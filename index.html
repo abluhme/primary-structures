@@ -413,9 +413,115 @@ canvas { display: block; }
   font-size: 7px;
   letter-spacing: 0.16em;
 }
+
+/* ── Mobile drawer ───────────────────────────────────────── */
+
+/* Backdrop */
+#drawer-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13,13,13,0.45);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 260ms cubic-bezier(0.32,0.72,0,1);
+}
+
+#drawer-backdrop.open {
+  opacity: 1;
+}
+
+/* Toggle button — hidden on desktop */
+#drawer-toggle {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 101;
+  width: 34px;
+  height: 34px;
+  background: var(--ink);
+  border: none;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 140ms cubic-bezier(0.23,1,0.32,1),
+              transform  100ms ease-out;
+}
+
+#drawer-toggle:active { transform: scale(0.93); }
+
+@media (hover: hover) and (pointer: fine) {
+  #drawer-toggle:hover { background: var(--red); }
+}
+
+/* The icon lines — morph ≡ → × */
+.tog-bar {
+  position: absolute;
+  left: 8px;
+  width: 18px;
+  height: 2px;
+  background: var(--bg);
+  transition: transform 200ms cubic-bezier(0.23,1,0.32,1),
+              opacity   160ms ease-out;
+}
+.tog-bar:nth-child(1) { top: 10px; }
+.tog-bar:nth-child(2) { top: 16px; }
+.tog-bar:nth-child(3) { top: 22px; }
+
+#drawer-toggle.open .tog-bar:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+#drawer-toggle.open .tog-bar:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+#drawer-toggle.open .tog-bar:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+@media (max-width: 640px) {
+  /* Show the toggle button */
+  #drawer-toggle { display: flex; }
+
+  /* Backdrop becomes active */
+  #drawer-backdrop { display: block; }
+
+  /* Sidebar becomes a fixed drawer */
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 100%;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 300ms cubic-bezier(0.32,0.72,0,1);
+    box-shadow: 4px 0 24px rgba(13,13,13,0.18);
+  }
+
+  #sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Canvas fills full width */
+  #canvas-area {
+    width: 100%;
+  }
+
+  /* Push hint text right so it doesn't sit under the toggle button */
+  .hint { padding-left: 56px; }
+}
 </style>
 </head>
 <body>
+
+<!-- ── Mobile drawer toggle ─────────────────────────────── -->
+<button id="drawer-toggle" aria-label="Toggle panel">
+  <span class="tog-bar"></span>
+  <span class="tog-bar"></span>
+  <span class="tog-bar"></span>
+</button>
+<div id="drawer-backdrop"></div>
 
 <!-- ── Sidebar ──────────────────────────────────────────── -->
 <div id="sidebar">
@@ -1046,6 +1152,36 @@ document.getElementById('btnExport').addEventListener('click', () => {
 });
 
 init();
+
+// ── Mobile drawer ─────────────────────────────────────────────────────────────
+const drawerToggle   = document.getElementById('drawer-toggle');
+const drawerBackdrop = document.getElementById('drawer-backdrop');
+const sidebar        = document.getElementById('sidebar');
+
+function openDrawer() {
+  sidebar.classList.add('open');
+  drawerToggle.classList.add('open');
+  drawerBackdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer() {
+  sidebar.classList.remove('open');
+  drawerToggle.classList.remove('open');
+  drawerBackdrop.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+drawerToggle.addEventListener('click', () => {
+  sidebar.classList.contains('open') ? closeDrawer() : openDrawer();
+});
+
+drawerBackdrop.addEventListener('click', closeDrawer);
+
+// Close drawer on resize back to desktop
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 640) closeDrawer();
+});
 </script>
 </body>
 </html>
