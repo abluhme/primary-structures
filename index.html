@@ -29,9 +29,7 @@ body {
   gap: 0;
   flex-shrink: 0;
 }
-
 .s-logo {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 9px;
   font-weight: 500;
   letter-spacing: 0.18em;
@@ -39,7 +37,6 @@ body {
   text-transform: uppercase;
   margin-bottom: 10px;
 }
-
 .s-title {
   font-family: 'EB Garamond', Georgia, serif;
   font-size: 18px;
@@ -49,9 +46,7 @@ body {
   line-height: 1.2;
   margin-bottom: 24px;
 }
-
 .s-rule { height: 1px; background: #1e1e1e; margin: 0 0 18px; }
-
 .s-label {
   font-size: 8.5px;
   font-weight: 500;
@@ -60,7 +55,6 @@ body {
   text-transform: uppercase;
   margin-bottom: 10px;
 }
-
 .s-btn {
   background: transparent;
   border: 1px solid #2a2a2a;
@@ -79,23 +73,12 @@ body {
   margin-bottom: 18px;
 }
 .s-btn:hover { border-color: #555; color: #ccc; }
-.s-btn.ghost { border-color: transparent; color: #3a3a3a; }
-.s-btn.ghost:hover { color: #c0392b; border-color: transparent; }
-.s-btn.export-btn {
-  border-color: #2a2a2a;
-  color: #555;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  margin-bottom: 0;
-}
+.s-btn.ghost { border-color: transparent; color: #3a3a3a; margin-bottom: 0; }
+.s-btn.ghost:hover { color: #c0392b; }
+.s-btn.export-btn { border-color: #2a2a2a; color: #555; font-size: 11px; letter-spacing: 0.06em; margin-bottom: 0; }
 .s-btn.export-btn:hover { border-color: #888; color: #ccc; }
 
-.circle-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  margin-bottom: 18px;
-}
+.circle-list { display: flex; flex-direction: column; gap: 1px; margin-bottom: 18px; }
 .circle-item {
   padding: 6px 8px;
   cursor: pointer;
@@ -111,94 +94,39 @@ body {
 }
 .circle-item:hover { color: #aaa; }
 .circle-item.active { color: #d0ccc4; border-left-color: #555; }
-.c-num {
-  font-family: 'Space Mono', 'Courier New', monospace;
-  font-size: 9px;
-  color: #2e2e2e;
-  width: 14px;
-  flex-shrink: 0;
-}
+.c-num { font-family: 'Space Mono', 'Courier New', monospace; font-size: 9px; color: #2e2e2e; width: 14px; flex-shrink: 0; }
 .circle-item.active .c-num { color: #666; }
 
-.prop-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 18px;
-}
-.prop-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.prop-row .p-label {
-  font-size: 10px;
-  color: #3a3a3a;
-  width: 38px;
-  flex-shrink: 0;
-  letter-spacing: 0.05em;
-}
+.prop-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+.prop-row { display: flex; align-items: center; gap: 8px; }
+.prop-row .p-label { font-size: 10px; color: #3a3a3a; width: 48px; flex-shrink: 0; letter-spacing: 0.04em; }
 
 input[type="range"] {
-  flex: 1;
-  -webkit-appearance: none;
-  height: 1px;
-  background: #333;
-  outline: none;
-  cursor: pointer;
+  flex: 1; -webkit-appearance: none; height: 1px; background: #333; outline: none; cursor: pointer;
 }
 input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 9px;
-  height: 9px;
-  background: #888;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background 0.1s;
+  -webkit-appearance: none; width: 9px; height: 9px; background: #888;
+  border-radius: 50%; cursor: pointer; transition: background 0.1s;
 }
 input[type="range"]::-webkit-slider-thumb:hover { background: #ccc; }
-
 input[type="number"] {
-  width: 48px;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid #2a2a2a;
-  color: #666;
-  padding: 2px 4px;
-  font-family: 'Space Mono', 'Courier New', monospace;
-  font-size: 10px;
-  text-align: right;
-  outline: none;
-  transition: border-color 0.1s;
+  width: 44px; background: transparent; border: none;
+  border-bottom: 1px solid #2a2a2a; color: #666; padding: 2px 4px;
+  font-family: 'Space Mono', 'Courier New', monospace; font-size: 10px;
+  text-align: right; outline: none; transition: border-color 0.1s;
 }
 input[type="number"]:focus { border-bottom-color: #555; color: #aaa; }
 
-#status {
-  font-size: 9px;
-  color: #2a2a2a;
-  line-height: 1.7;
-  letter-spacing: 0.04em;
-  margin-top: 10px;
-}
+.s-hint { font-size: 9px; color: #2a2a2a; line-height: 1.6; letter-spacing: 0.03em; }
+#status { font-size: 9px; color: #2a2a2a; line-height: 1.7; letter-spacing: 0.04em; margin-top: 10px; }
 
 /* ── Canvas ──────────────────────────────────────────── */
-#canvas-area {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  background: #f5f3ee;
-}
+#canvas-area { flex: 1; position: relative; overflow: hidden; background: #f5f3ee; }
 canvas { display: block; }
 .hint {
-  position: absolute;
-  bottom: 18px;
-  right: 22px;
-  font-size: 9.5px;
-  color: #c8c5bf;
-  white-space: nowrap;
-  pointer-events: none;
-  letter-spacing: 0.06em;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  position: absolute; bottom: 18px; right: 22px; font-size: 9.5px;
+  color: #c8c5bf; white-space: nowrap; pointer-events: none;
+  letter-spacing: 0.06em; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 </style>
 </head>
@@ -212,58 +140,74 @@ canvas { display: block; }
 
   <div class="s-label">Circles</div>
   <div class="circle-list" id="circleList"></div>
-
   <button class="s-btn" id="btnAdd">＋ &thinsp;Add Circle</button>
 
   <div class="s-rule"></div>
 
+  <!-- Circle properties -->
   <div class="prop-section" id="circleProps" style="display:none">
-    <div class="s-label">Selected</div>
+    <div class="s-label">Circle</div>
     <div class="prop-row">
       <span class="p-label">Radius</span>
       <input type="range" id="radiusSlider" min="15" max="280" value="80">
       <input type="number" id="radiusInput" min="15" max="280" value="80">
     </div>
-    <button class="s-btn ghost" id="btnDelete" style="margin-bottom:0">— &thinsp;Remove</button>
+    <button class="s-btn ghost" id="btnDelete">— &thinsp;Remove</button>
+  </div>
+
+  <!-- Connector properties -->
+  <div class="prop-section" id="connectorProps" style="display:none">
+    <div class="s-label">Connector</div>
+    <div class="prop-row">
+      <span class="p-label">Flow</span>
+      <input type="range" id="curveSlider" min="0" max="100" value="0">
+      <input type="number" id="curveInput" min="0" max="100" value="0">
+    </div>
+    <div class="s-hint" id="connectorHint">click a connector handle to adjust its curve</div>
+  </div>
+
+  <!-- Nothing selected -->
+  <div id="nothingProps" class="s-hint" style="display:none">
+    Click a circle or connector handle
   </div>
 
   <div class="s-rule" id="propRule" style="display:none"></div>
 
-  <div class="s-label">Flow</div>
-  <div class="prop-row" style="margin-bottom:18px">
-    <span class="p-label" style="width:52px;font-size:9px;color:#2e2e2e">Curvature</span>
-    <input type="range" id="curveSlider" min="0" max="100" value="0">
-    <input type="number" id="curveInput" min="0" max="100" value="0" style="width:40px">
+  <div style="margin-top:auto; display:flex; flex-direction:column; gap:0">
+    <div class="s-rule"></div>
+    <button class="s-btn export-btn" id="btnExport">↓ &thinsp;Export SVG</button>
+    <div id="status"></div>
   </div>
-
-  <div class="s-rule"></div>
-
-  <button class="s-btn export-btn" id="btnExport">↓ &thinsp;Export SVG</button>
-  <div id="status">3 circles · tangent profile</div>
 </div>
 
 <div id="canvas-area">
   <canvas id="canvas"></canvas>
-  <div class="hint">drag center · drag edge to resize</div>
+  <div class="hint">drag circle · drag edge to resize · click connector ◆ to adjust</div>
 </div>
 
 <script>
 const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const area = document.getElementById('canvas-area');
+const ctx    = canvas.getContext('2d');
+const area   = document.getElementById('canvas-area');
 
-let circles = [];
-let selectedId = null;
-let nextId = 1;
-let dragging = null;
-let curveTension = 0;
+let circles    = [];
+let nextId     = 1;
+let dragging   = null;
+
+// Selection: either a circle id or a connector key (string), never both
+let selCircleId   = null;
+let selConnKey    = null;
+
+// Per-connector tension: Map<key, 0..1>
+const segTensions = new Map();
+const getT  = k  => segTensions.get(k) ?? 0;
+const setT  = (k, v) => segTensions.set(k, v);
+
+// Last computed segment metadata for hit-testing connector handles
+let lastSegs = []; // [{key, mid, exitPt, nextEntry}]
 
 // ── Resize ───────────────────────────────────────────────────────────────────
-function resize() {
-  canvas.width  = area.clientWidth;
-  canvas.height = area.clientHeight;
-  draw();
-}
+function resize() { canvas.width = area.clientWidth; canvas.height = area.clientHeight; draw(); }
 window.addEventListener('resize', resize);
 
 function init() {
@@ -274,105 +218,125 @@ function init() {
     { id: nextId++, x: cx + 75, y: cy - 45,  r: 82  },
     { id: nextId++, x: cx + 10, y: cy + 95,  r: 65  },
   ];
-  updateList();
-  draw();
+  draw();        // populate lastSegs first
+  updateList();  // syncProps can then read correct connector count
 }
 
 // ── Geometry ──────────────────────────────────────────────────────────────────
 
 function centroid(cs) {
-  return {
-    x: cs.reduce((s, c) => s + c.x, 0) / cs.length,
-    y: cs.reduce((s, c) => s + c.y, 0) / cs.length,
-  };
+  return { x: cs.reduce((s,c) => s+c.x, 0)/cs.length, y: cs.reduce((s,c) => s+c.y, 0)/cs.length };
 }
 
 function sortCW(cs) {
   const ctr = centroid(cs);
-  return [...cs].sort((a, b) =>
-    Math.atan2(a.y - ctr.y, a.x - ctr.x) - Math.atan2(b.y - ctr.y, b.x - ctr.x)
-  );
+  return [...cs].sort((a,b) => Math.atan2(a.y-ctr.y, a.x-ctr.x) - Math.atan2(b.y-ctr.y, b.x-ctr.x));
 }
 
 function externalTangents(c1, c2) {
-  const dx = c2.x - c1.x, dy = c2.y - c1.y;
-  const dist = Math.hypot(dx, dy);
+  const dx = c2.x-c1.x, dy = c2.y-c1.y, dist = Math.hypot(dx,dy);
   if (dist < 1e-6) return null;
-  const cosA = (c1.r - c2.r) / dist;
+  const cosA = (c1.r-c2.r)/dist;
   if (Math.abs(cosA) > 1) return null;
-  const sinA = Math.sqrt(1 - cosA * cosA);
-  const ux = dx / dist, uy = dy / dist;
-  const vx = -uy, vy = ux;
-  return [1, -1].map(s => {
-    const nx = cosA * ux + s * sinA * vx;
-    const ny = cosA * uy + s * sinA * vy;
-    return {
-      p1: { x: c1.x + c1.r * nx, y: c1.y + c1.r * ny },
-      p2: { x: c2.x + c2.r * nx, y: c2.y + c2.r * ny },
-    };
+  const sinA = Math.sqrt(1-cosA*cosA), ux=dx/dist, uy=dy/dist, vx=-uy, vy=ux;
+  return [1,-1].map(s => {
+    const nx = cosA*ux + s*sinA*vx, ny = cosA*uy + s*sinA*vy;
+    return { p1:{x:c1.x+c1.r*nx, y:c1.y+c1.r*ny}, p2:{x:c2.x+c2.r*nx, y:c2.y+c2.r*ny} };
   });
 }
 
-function buildPath(cs, tension) {
+// CW tangent at a point on a circle (screen y-down).
+function cwTan(pt, center) {
+  const rx = pt.x-center.x, ry = pt.y-center.y, len = Math.hypot(rx,ry);
+  return { x: ry/len, y: -rx/len };
+}
+
+// Cubic Bézier connector that:
+//  • Leaves exitPt tangent to circle c  (G1 continuity)
+//  • Arrives at nextEntry tangent to circle nc (G1 continuity)
+//  • Interior control points are pulled inward by `tension` (0..1)
+function connectorCmd(exitPt, c, nextEntry, nc, tension, ctr) {
+  const segDx = nextEntry.x-exitPt.x, segDy = nextEntry.y-exitPt.y;
+  const segLen = Math.hypot(segDx, segDy);
+  if (segLen < 1e-6) return `L ${f(nextEntry.x)} ${f(nextEntry.y)} `;
+
+  // Short tangent handles — preserve G1 with the arc at both ends
+  const t1 = cwTan(exitPt,    c);
+  const t2 = cwTan(nextEntry, nc);
+  const hLen = segLen * 0.25;    // handle length: 25% of segment
+
+  let cp1x = exitPt.x    + hLen * t1.x;
+  let cp1y = exitPt.y    + hLen * t1.y;
+  let cp2x = nextEntry.x - hLen * t2.x;
+  let cp2y = nextEntry.y - hLen * t2.y;
+
+  if (tension > 0) {
+    // Perpendicular to segment toward centroid = inward direction
+    const ux = segDx/segLen, uy = segDy/segLen;
+    const px = -uy, py = ux;
+    const mx = (exitPt.x+nextEntry.x)/2, my = (exitPt.y+nextEntry.y)/2;
+    const inward = (px*(ctr.x-mx) + py*(ctr.y-my)) > 0 ? 1 : -1;
+    const disp = tension * segLen * 0.65;
+    // Displace interior control points inward — tangent handles stay on the circle,
+    // so G1 continuity is maintained while the middle of the curve bows inward.
+    cp1x += inward * px * disp;
+    cp1y += inward * py * disp;
+    cp2x += inward * px * disp;
+    cp2y += inward * py * disp;
+  }
+
+  return `C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(nextEntry.x)} ${f(nextEntry.y)} `;
+}
+
+function buildPath(cs) {
   if (cs.length < 2) return null;
   const sorted = sortCW(cs);
-  const n      = sorted.length;
-  const ctr    = centroid(sorted);
+  const n = sorted.length, ctr = centroid(sorted);
 
   const segs = [];
   for (let i = 0; i < n; i++) {
-    const c1 = sorted[i], c2 = sorted[(i + 1) % n];
+    const c1 = sorted[i], c2 = sorted[(i+1)%n];
     const ts = externalTangents(c1, c2);
     if (!ts) return null;
-    const [t0, t1] = ts;
-    const m0x = (t0.p1.x + t0.p2.x) / 2, m0y = (t0.p1.y + t0.p2.y) / 2;
-    const m1x = (t1.p1.x + t1.p2.x) / 2, m1y = (t1.p1.y + t1.p2.y) / 2;
-    const d0 = (m0x - ctr.x) ** 2 + (m0y - ctr.y) ** 2;
-    const d1 = (m1x - ctr.x) ** 2 + (m1y - ctr.y) ** 2;
-    segs.push(d0 >= d1 ? t0 : t1);
+    const [t0,t1] = ts;
+    const m0x=(t0.p1.x+t0.p2.x)/2, m0y=(t0.p1.y+t0.p2.y)/2;
+    const m1x=(t1.p1.x+t1.p2.x)/2, m1y=(t1.p1.y+t1.p2.y)/2;
+    const d0=(m0x-ctr.x)**2+(m0y-ctr.y)**2, d1=(m1x-ctr.x)**2+(m1y-ctr.y)**2;
+    segs.push(d0>=d1 ? t0 : t1);
   }
 
+  const segMeta = [];
   let d = '';
   for (let i = 0; i < n; i++) {
     const c       = sorted[i];
-    const prevSeg = segs[(i - 1 + n) % n];
+    const nc      = sorted[(i+1)%n];
+    const prevSeg = segs[(i-1+n)%n];
     const curSeg  = segs[i];
     const entryPt = prevSeg.p2;
     const exitPt  = curSeg.p1;
+    const nextEntry = curSeg.p2;
 
     // Arc on circle, CW on screen (sweep=1)
-    const a1   = Math.atan2(entryPt.y - c.y, entryPt.x - c.x);
-    const a2   = Math.atan2(exitPt.y  - c.y, exitPt.x  - c.x);
-    const daCW = ((a2 - a1) + 2 * Math.PI) % (2 * Math.PI);
+    const a1   = Math.atan2(entryPt.y-c.y, entryPt.x-c.x);
+    const a2   = Math.atan2(exitPt.y -c.y, exitPt.x -c.x);
+    const daCW = ((a2-a1)+2*Math.PI)%(2*Math.PI);
     const la   = daCW > Math.PI ? 1 : 0;
 
-    if (i === 0) d += `M ${f(entryPt.x)} ${f(entryPt.y)} `;
+    if (i===0) d += `M ${f(entryPt.x)} ${f(entryPt.y)} `;
     d += `A ${f(c.r)} ${f(c.r)} 0 ${la} 1 ${f(exitPt.x)} ${f(exitPt.y)} `;
 
-    // Quadratic Bézier connector — control point pulled inward toward centroid.
-    // At tension=0 the control point sits at the segment midpoint (straight line).
-    // Increasing tension bows the midpoint toward the interior of the shape.
-    const nextEntry = curSeg.p2;
-    const mx = (exitPt.x + nextEntry.x) / 2;
-    const my = (exitPt.y + nextEntry.y) / 2;
+    // Connector key: ordered circle IDs
+    const key = `${c.id}_${nc.id}`;
+    d += connectorCmd(exitPt, c, nextEntry, nc, getT(key), ctr);
 
-    // Perpendicular to the segment that points toward the centroid.
-    const segDx = nextEntry.x - exitPt.x, segDy = nextEntry.y - exitPt.y;
-    const segLen = Math.hypot(segDx, segDy);
-    let ctrl = { x: mx, y: my };
-    if (segLen > 1e-6) {
-      const ux = segDx / segLen, uy = segDy / segLen;
-      const px = -uy, py = ux; // left-hand perpendicular
-      // Dot with centroid direction to pick the inward side
-      const inward = (px * (ctr.x - mx) + py * (ctr.y - my)) > 0 ? 1 : -1;
-      const disp = tension * segLen * 0.5;
-      ctrl = { x: mx + inward * px * disp, y: my + inward * py * disp };
-    }
-
-    d += `Q ${f(ctrl.x)} ${f(ctrl.y)} ${f(nextEntry.x)} ${f(nextEntry.y)} `;
+    // Stable midpoint handle position (geometric midpoint of tangent points)
+    segMeta.push({
+      key,
+      mid: { x:(exitPt.x+nextEntry.x)/2, y:(exitPt.y+nextEntry.y)/2 },
+    });
   }
   d += 'Z';
-  return d;
+  return { d, segMeta };
 }
 
 const f = n => n.toFixed(2);
@@ -381,183 +345,201 @@ const f = n => n.toFixed(2);
 
 function draw() {
   const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
+  ctx.clearRect(0,0,W,H);
 
   // Graph-paper grid
   const gs = 24;
-  ctx.strokeStyle = 'rgba(0,0,0,0.055)';
-  ctx.lineWidth = 0.5;
-  for (let x = gs; x < W; x += gs) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-  }
-  for (let y = gs; y < H; y += gs) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-  }
-  // Major grid every 5 cells
+  ctx.strokeStyle = 'rgba(0,0,0,0.055)'; ctx.lineWidth = 0.5;
+  for (let x=gs; x<W; x+=gs){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y=gs; y<H; y+=gs){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
   ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-  ctx.lineWidth = 0.5;
-  for (let x = gs * 5; x < W; x += gs * 5) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-  }
-  for (let y = gs * 5; y < H; y += gs * 5) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-  }
+  for (let x=gs*5; x<W; x+=gs*5){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y=gs*5; y<H; y+=gs*5){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
 
   if (!circles.length) return;
 
-  // Build profile
-  const pathStr = buildPath(circles, curveTension);
-  if (pathStr) {
-    const p2d = new Path2D(pathStr);
+  const result = buildPath(circles);
+  lastSegs = result ? result.segMeta : [];
 
-    // Fill — barely-there warm tint
+  if (result) {
+    const p2d = new Path2D(result.d);
     ctx.fillStyle = 'rgba(0,0,0,0.04)';
     ctx.fill(p2d);
-
-    // Main outline stroke
     ctx.strokeStyle = '#1a1a1a';
-    ctx.lineWidth   = 1.5;
-    ctx.lineJoin    = 'round';
-    ctx.lineCap     = 'round';
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     ctx.stroke(p2d);
   }
 
-  // Circle construction guides
+  // Circles
   circles.forEach(c => {
-    const sel = c.id === selectedId;
-
-    // Circle outline
-    ctx.beginPath();
-    ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+    const sel = c.id === selCircleId;
+    ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
     ctx.strokeStyle = sel ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.09)';
-    ctx.lineWidth   = sel ? 1 : 0.75;
-    ctx.setLineDash(sel ? [4, 4] : [3, 5]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    ctx.lineWidth = sel ? 1 : 0.75;
+    ctx.setLineDash(sel ? [4,4] : [3,5]); ctx.stroke(); ctx.setLineDash([]);
 
-    // Center crosshair (architectural feel)
+    // Crosshair
     const cs = 5;
-    ctx.strokeStyle = sel ? '#111' : 'rgba(0,0,0,0.25)';
-    ctx.lineWidth   = sel ? 1.5 : 1;
-    ctx.beginPath(); ctx.moveTo(c.x - cs, c.y); ctx.lineTo(c.x + cs, c.y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(c.x, c.y - cs); ctx.lineTo(c.x, c.y + cs); ctx.stroke();
+    ctx.strokeStyle = sel ? '#111' : 'rgba(0,0,0,0.25)'; ctx.lineWidth = sel?1.5:1;
+    ctx.beginPath(); ctx.moveTo(c.x-cs,c.y); ctx.lineTo(c.x+cs,c.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(c.x,c.y-cs); ctx.lineTo(c.x,c.y+cs); ctx.stroke();
+    ctx.beginPath(); ctx.arc(c.x,c.y,sel?3:2,0,Math.PI*2);
+    ctx.fillStyle = sel?'#111':'rgba(0,0,0,0.3)'; ctx.fill();
 
-    // Center dot
-    ctx.beginPath();
-    ctx.arc(c.x, c.y, sel ? 3 : 2, 0, Math.PI * 2);
-    ctx.fillStyle = sel ? '#111' : 'rgba(0,0,0,0.3)';
-    ctx.fill();
+    // Radius handle
+    const hx=c.x+c.r, hy=c.y;
+    ctx.beginPath(); ctx.arc(hx,hy,4.5,0,Math.PI*2);
+    ctx.fillStyle = sel?'#f5f3ee':'rgba(245,243,238,0.9)';
+    ctx.strokeStyle = sel?'#111':'rgba(0,0,0,0.28)'; ctx.lineWidth=sel?1.5:1;
+    ctx.fill(); ctx.stroke();
+  });
 
-    // Radius handle — small hollow circle at right edge
-    const hx = c.x + c.r, hy = c.y;
+  // Connector midpoint handles — small diamonds
+  lastSegs.forEach(seg => {
+    const {mid, key} = seg;
+    const isSel  = key === selConnKey;
+    const hasCurve = getT(key) > 0.01;
+    const size = 4;
+    ctx.save();
+    ctx.translate(mid.x, mid.y);
+    ctx.rotate(Math.PI/4);
     ctx.beginPath();
-    ctx.arc(hx, hy, 4.5, 0, Math.PI * 2);
-    ctx.fillStyle   = sel ? '#f5f3ee' : 'rgba(245,243,238,0.9)';
-    ctx.strokeStyle = sel ? '#111' : 'rgba(0,0,0,0.28)';
-    ctx.lineWidth   = sel ? 1.5 : 1;
+    ctx.rect(-size/2, -size/2, size, size);
+    ctx.fillStyle   = isSel ? '#111' : hasCurve ? 'rgba(0,0,0,0.5)' : '#f5f3ee';
+    ctx.strokeStyle = isSel ? '#111' : 'rgba(0,0,0,0.35)';
+    ctx.lineWidth   = 1;
     ctx.fill();
     ctx.stroke();
+    ctx.restore();
   });
 }
 
 // ── Interaction ────────────────────────────────────────────────────────────────
 
-function hitTest(x, y) {
-  for (let i = circles.length - 1; i >= 0; i--) {
-    const c = circles[i];
-    if (Math.hypot(x - (c.x + c.r), y - c.y) <= 10) return { type: 'radius', id: c.id };
-    if (Math.hypot(x - c.x, y - c.y) <= 10)          return { type: 'center', id: c.id };
+function hitTestConnector(x, y) {
+  for (const seg of lastSegs) {
+    if (Math.hypot(x-seg.mid.x, y-seg.mid.y) <= 10) return seg.key;
   }
-  for (let i = circles.length - 1; i >= 0; i--) {
-    const c = circles[i];
-    if ((x - c.x) ** 2 + (y - c.y) ** 2 <= c.r ** 2) return { type: 'center', id: c.id };
+  return null;
+}
+
+function hitTestCircle(x, y) {
+  for (let i=circles.length-1; i>=0; i--) {
+    const c=circles[i];
+    if (Math.hypot(x-(c.x+c.r), y-c.y) <= 10) return {type:'radius', id:c.id};
+    if (Math.hypot(x-c.x, y-c.y) <= 10)        return {type:'center', id:c.id};
+  }
+  for (let i=circles.length-1; i>=0; i--) {
+    const c=circles[i];
+    if ((x-c.x)**2+(y-c.y)**2 <= c.r**2) return {type:'center', id:c.id};
   }
   return null;
 }
 
 function evtPos(e) {
-  const r = canvas.getBoundingClientRect();
-  const s = e.touches ? e.touches[0] : e;
-  return { x: s.clientX - r.left, y: s.clientY - r.top };
+  const r=canvas.getBoundingClientRect(), s=e.touches?e.touches[0]:e;
+  return {x:s.clientX-r.left, y:s.clientY-r.top};
 }
 
 canvas.addEventListener('mousedown', e => {
-  const { x, y } = evtPos(e);
-  const hit = hitTest(x, y);
+  const {x,y} = evtPos(e);
+
+  // 1. Connector handles take priority
+  const connKey = hitTestConnector(x,y);
+  if (connKey) { selectConnector(connKey); return; }
+
+  // 2. Circle handles
+  const hit = hitTestCircle(x,y);
   if (hit) {
-    const c = circles.find(c => c.id === hit.id);
-    dragging = { ...hit, sx: x, sy: y, cx: c.x, cy: c.y, cr: c.r };
+    const c = circles.find(c=>c.id===hit.id);
+    dragging = {...hit, sx:x, sy:y, cx:c.x, cy:c.y, cr:c.r};
     selectCircle(hit.id);
-  } else {
-    selectCircle(null);
+    return;
   }
+
+  // 3. Click empty space
+  clearSelection();
 });
 
 canvas.addEventListener('mousemove', e => {
-  const { x, y } = evtPos(e);
+  const {x,y} = evtPos(e);
   if (!dragging) {
-    const hit = hitTest(x, y);
-    canvas.style.cursor = hit
-      ? (hit.type === 'center' ? 'grab' : 'ew-resize')
-      : 'crosshair';
+    const connKey = hitTestConnector(x,y);
+    if (connKey) { canvas.style.cursor = 'pointer'; return; }
+    const hit = hitTestCircle(x,y);
+    canvas.style.cursor = hit ? (hit.type==='center'?'grab':'ew-resize') : 'crosshair';
     return;
   }
-  const dx = x - dragging.sx, dy = y - dragging.sy;
-  const c = circles.find(c => c.id === dragging.id);
+  const dx=x-dragging.sx, dy=y-dragging.sy;
+  const c=circles.find(c=>c.id===dragging.id);
   if (!c) return;
-  if (dragging.type === 'center') {
-    c.x = dragging.cx + dx;
-    c.y = dragging.cy + dy;
-  } else {
-    c.r = Math.max(15, dragging.cr + dx);
-    syncProps();
-  }
+  if (dragging.type==='center') { c.x=dragging.cx+dx; c.y=dragging.cy+dy; }
+  else { c.r=Math.max(15,dragging.cr+dx); syncProps(); }
   updateListRadii();
   draw();
 });
 
-canvas.addEventListener('mouseup',    () => { dragging = null; });
-canvas.addEventListener('mouseleave', () => { dragging = null; });
+canvas.addEventListener('mouseup',    () => { dragging=null; });
+canvas.addEventListener('mouseleave', () => { dragging=null; });
 
-// ── UI sync ────────────────────────────────────────────────────────────────────
+// ── Selection ──────────────────────────────────────────────────────────────────
 
 function selectCircle(id) {
-  selectedId = id;
-  syncProps();
-  updateList();
-  draw();
+  selCircleId=id; selConnKey=null; syncProps(); updateList(); draw();
+}
+function selectConnector(key) {
+  selConnKey=key; selCircleId=null; syncProps(); updateList(); draw();
+}
+function clearSelection() {
+  selCircleId=null; selConnKey=null; syncProps(); updateList(); draw();
 }
 
+// ── UI sync ─────────────────────────────────────────────────────────────────────
+
 function syncProps() {
-  const el        = document.getElementById('circleProps');
-  const ruleEl    = document.getElementById('propRule');
-  if (selectedId) {
-    const c = circles.find(c => c.id === selectedId);
+  const circEl   = document.getElementById('circleProps');
+  const connEl   = document.getElementById('connectorProps');
+  const noneEl   = document.getElementById('nothingProps');
+  const ruleEl   = document.getElementById('propRule');
+
+  circEl.style.display  = 'none';
+  connEl.style.display  = 'none';
+  noneEl.style.display  = 'none';
+  ruleEl.style.display  = 'none';
+
+  if (selCircleId) {
+    const c = circles.find(c=>c.id===selCircleId);
     if (c) {
-      el.style.display     = 'flex';
-      el.style.flexDirection = 'column';
-      el.style.gap         = '10px';
+      circEl.style.display = 'flex'; circEl.style.flexDirection='column'; circEl.style.gap='10px';
       ruleEl.style.display = 'block';
       document.getElementById('radiusInput').value  = Math.round(c.r);
       document.getElementById('radiusSlider').value = Math.round(c.r);
     }
+  } else if (selConnKey) {
+    const t = Math.round(getT(selConnKey) * 100);
+    connEl.style.display = 'flex'; connEl.style.flexDirection='column'; connEl.style.gap='10px';
+    ruleEl.style.display = 'block';
+    document.getElementById('curveSlider').value = t;
+    document.getElementById('curveInput').value  = t;
+    document.getElementById('connectorHint').style.display = 'none';
   } else {
-    el.style.display     = 'none';
-    ruleEl.style.display = 'none';
+    document.getElementById('connectorHint').style.display = 'block';
   }
+
   document.getElementById('status').textContent =
-    `${circles.length} circle${circles.length !== 1 ? 's' : ''} — curvature ${Math.round(curveTension * 100)}%`;
+    `${circles.length} circle${circles.length!==1?'s':''} · ${lastSegs.length} connector${lastSegs.length!==1?'s':''}`;
 }
 
 function updateList() {
   const list = document.getElementById('circleList');
   list.innerHTML = '';
-  circles.forEach((c, i) => {
+  circles.forEach((c,i) => {
     const item = document.createElement('div');
-    item.className = 'circle-item' + (c.id === selectedId ? ' active' : '');
+    item.className = 'circle-item' + (c.id===selCircleId?' active':'');
     item.innerHTML =
-      `<span class="c-num">0${i + 1}</span>` +
-      `<span>Circle ${i + 1}</span>` +
+      `<span class="c-num">0${i+1}</span>` +
+      `<span>Circle ${i+1}</span>` +
       `<span style="margin-left:auto;font-family:'Space Mono','Courier New',monospace;font-size:9px;color:#2e2e2e">${Math.round(c.r)}</span>`;
     item.addEventListener('click', () => selectCircle(c.id));
     list.appendChild(item);
@@ -566,97 +548,75 @@ function updateList() {
 }
 
 function updateListRadii() {
-  document.querySelectorAll('.circle-item').forEach((el, i) => {
-    const spans = el.querySelectorAll('span');
-    const last  = spans[spans.length - 1];
+  document.querySelectorAll('.circle-item').forEach((el,i) => {
+    const spans=el.querySelectorAll('span'), last=spans[spans.length-1];
     if (last && circles[i]) last.textContent = Math.round(circles[i].r);
   });
 }
 
-// ── Controls ───────────────────────────────────────────────────────────────────
+// ── Controls ────────────────────────────────────────────────────────────────────
 
 document.getElementById('btnAdd').addEventListener('click', () => {
-  const cx = canvas.width  / 2 + (Math.random() - .5) * 200;
-  const cy = canvas.height / 2 + (Math.random() - .5) * 200;
-  circles.push({ id: nextId++, x: cx, y: cy, r: 70 });
-  selectCircle(circles[circles.length - 1].id);
-  updateList();
-  draw();
+  const cx=canvas.width/2+(Math.random()-.5)*200, cy=canvas.height/2+(Math.random()-.5)*200;
+  circles.push({id:nextId++, x:cx, y:cy, r:70});
+  selectCircle(circles[circles.length-1].id);
+  updateList(); draw();
 });
 
 document.getElementById('btnDelete').addEventListener('click', () => {
-  if (!selectedId || circles.length <= 2) return;
-  circles    = circles.filter(c => c.id !== selectedId);
-  selectedId = null;
-  updateList();
-  draw();
+  if (!selCircleId || circles.length<=2) return;
+  circles=circles.filter(c=>c.id!==selCircleId);
+  selCircleId=null; updateList(); draw();
 });
 
 document.getElementById('radiusSlider').addEventListener('input', e => {
-  if (!selectedId) return;
-  const c = circles.find(c => c.id === selectedId);
-  if (!c) return;
-  c.r = +e.target.value;
-  document.getElementById('radiusInput').value = c.r;
-  updateListRadii();
-  draw();
+  if (!selCircleId) return;
+  const c=circles.find(c=>c.id===selCircleId); if (!c) return;
+  c.r=+e.target.value; document.getElementById('radiusInput').value=c.r;
+  updateListRadii(); draw();
 });
-
 document.getElementById('radiusInput').addEventListener('input', e => {
-  if (!selectedId) return;
-  const c = circles.find(c => c.id === selectedId);
-  if (!c) return;
-  c.r = Math.max(15, Math.min(280, +e.target.value || 70));
-  document.getElementById('radiusSlider').value = c.r;
-  updateListRadii();
-  draw();
+  if (!selCircleId) return;
+  const c=circles.find(c=>c.id===selCircleId); if (!c) return;
+  c.r=Math.max(15,Math.min(280,+e.target.value||70));
+  document.getElementById('radiusSlider').value=c.r; updateListRadii(); draw();
 });
 
-// Curvature / flow slider
 document.getElementById('curveSlider').addEventListener('input', e => {
-  curveTension = +e.target.value / 100;
-  document.getElementById('curveInput').value = e.target.value;
-  syncProps();
-  draw();
+  if (!selConnKey) return;
+  const v=+e.target.value; setT(selConnKey, v/100);
+  document.getElementById('curveInput').value=v; draw();
 });
-
 document.getElementById('curveInput').addEventListener('input', e => {
-  const v = Math.max(0, Math.min(100, +e.target.value || 0));
-  curveTension = v / 100;
-  document.getElementById('curveSlider').value = v;
-  syncProps();
-  draw();
+  if (!selConnKey) return;
+  const v=Math.max(0,Math.min(100,+e.target.value||0)); setT(selConnKey, v/100);
+  document.getElementById('curveSlider').value=v; draw();
 });
 
-// Export
 document.getElementById('btnExport').addEventListener('click', () => {
-  const pathStr = buildPath(circles, curveTension);
-  if (!pathStr) { alert('Need at least 2 non-overlapping circles.'); return; }
+  const result = buildPath(circles);
+  if (!result) { alert('Need at least 2 non-overlapping circles.'); return; }
 
-  const pad  = 40;
-  const minX = Math.min(...circles.map(c => c.x - c.r)) - pad;
-  const minY = Math.min(...circles.map(c => c.y - c.r)) - pad;
-  const maxX = Math.max(...circles.map(c => c.x + c.r)) + pad;
-  const maxY = Math.max(...circles.map(c => c.y + c.r)) + pad;
-  const W = maxX - minX, H = maxY - minY;
+  const pad=40;
+  const minX=Math.min(...circles.map(c=>c.x-c.r))-pad, minY=Math.min(...circles.map(c=>c.y-c.r))-pad;
+  const maxX=Math.max(...circles.map(c=>c.x+c.r))+pad, maxY=Math.max(...circles.map(c=>c.y+c.r))+pad;
+  const W=maxX-minX, H=maxY-minY;
 
-  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+  const svg=`<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
      viewBox="${f(minX)} ${f(minY)} ${f(W)} ${f(H)}"
      width="${Math.round(W)}" height="${Math.round(H)}">
-  <path d="${pathStr}"
-        fill="none"
-        stroke="#1a1a1a" stroke-width="1.5"
+  <path d="${result.d}"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"
         stroke-linejoin="round" stroke-linecap="round"/>
 </svg>`;
 
-  const blob = new Blob([svg], { type: 'image/svg+xml' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = 'primary-structure.svg';
+  const blob=new Blob([svg],{type:'image/svg+xml'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='primary-structure.svg';
   document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a); URL.revokeObjectURL(url);
 });
 
 init();
