@@ -251,34 +251,72 @@ function cwTan(pt, center) {
   return { x: ry/len, y: -rx/len };
 }
 
-// Single cubic Bézier connector — G1 with both circles, unconditionally.
+// Two-segment cubic Bézier connector — inward-bowing, strict G1 everywhere.
 //
-// cp1 = exitPt   + k · t1   (handle along CW tangent of circle c)
-// cp2 = nextEntry − k · t2   (handle along CW tangent of circle nc, reversed)
+// The connector splits at an interior midpoint displaced inward (toward the
+// shape centroid). G1 at the two circle junctions is held by pinning cp1 and
+// cp4 along the CW circle tangents. G1 at the interior split is held by using
+// the ACTUAL direction to/from the displaced midpoint for cp2 and cp3 — not
+// the original chord direction (that was the bug in the previous version).
 //
-// This is one cubic, no interior split, no midpoint to displace.
-// G1 at both circle junctions is guaranteed for any value of k ≥ 0:
-//   • The arc on circle c ends at exitPt   going in direction t1
-//   • The connector starts at exitPt   going in direction t1   ✓
-//   • The connector ends   at nextEntry going in direction t2
-//   • The arc on circle nc starts at nextEntry going in direction t2 ✓
+//   cp1  = exitPt   + kCircle · t1          (tangent to circle c)
+//   cp2  = mid − kMid · avgDir             (approaching mid from behind)
+//   mid  = chordMid + flow · disp · inward  (pulled toward centroid)
+//   cp3  = mid + kMid · avgDir             (leaving mid forward)
+//   cp4  = nextEntry − kCircle · t2         (tangent to circle nc)
 //
-// flow (0–1) scales k.  At flow=0 the connector is a straight line.
-// At flow=1 the handles are ~40% of the segment length — a generous sweep.
+// avgDir = normalise(unit(mid−exit) + unit(entry−mid))  → G1 at split
 //
-function connectorCmd(exitPt, c, nextEntry, nc, flow) {
+function connectorCmd(exitPt, c, nextEntry, nc, flow, ctr) {
   const segDx = nextEntry.x - exitPt.x, segDy = nextEntry.y - exitPt.y;
   const segLen = Math.hypot(segDx, segDy);
   if (segLen < 1e-6) return `L ${f(nextEntry.x)} ${f(nextEntry.y)} `;
+  const ux = segDx / segLen, uy = segDy / segLen;
 
   const t1 = cwTan(exitPt,    c);
   const t2 = cwTan(nextEntry, nc);
 
-  const k    = flow * segLen * 0.4;
-  const cp1x = exitPt.x    + k * t1.x,  cp1y = exitPt.y    + k * t1.y;
-  const cp2x = nextEntry.x - k * t2.x,  cp2y = nextEntry.y - k * t2.y;
+  // Chord midpoint
+  const chordMx = (exitPt.x + nextEntry.x) / 2;
+  const chordMy = (exitPt.y + nextEntry.y) / 2;
 
-  return `C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(nextEntry.x)} ${f(nextEntry.y)} `;
+  // Inward unit vector: chord-midpoint → centroid (fallback: perp to chord)
+  let inx = ctr.x - chordMx, iny = ctr.y - chordMy;
+  const inLen = Math.hypot(inx, iny);
+  if (inLen > 1e-6) { inx /= inLen; iny /= inLen; }
+  else              { inx = -uy;    iny =  ux;    }
+
+  // Displaced midpoint (conservative 25% cap keeps shape stable at flow=1)
+  const disp = flow * segLen * 0.25;
+  const midX = chordMx + inx * disp;
+  const midY = chordMy + iny * disp;
+
+  // Directions exitPt→mid and mid→nextEntry
+  const d1x = midX - exitPt.x,    d1y = midY - exitPt.y;
+  const d1L = Math.hypot(d1x, d1y) || 1;
+  const d2x = nextEntry.x - midX, d2y = nextEntry.y - midY;
+  const d2L = Math.hypot(d2x, d2y) || 1;
+
+  // Bisector direction at the midpoint — ensures G1 at interior split
+  let avgX = d1x/d1L + d2x/d2L, avgY = d1y/d1L + d2y/d2L;
+  const avgL = Math.hypot(avgX, avgY);
+  if (avgL > 1e-6) { avgX /= avgL; avgY /= avgL; }
+  else             { avgX  = ux;   avgY  = uy;   }
+
+  // Handle lengths
+  const kCircle = segLen * 0.30;       // arc–connector junction handles
+  const kMid1   = d1L * 0.40;          // handle into midpoint (first half)
+  const kMid2   = d2L * 0.40;          // handle out of midpoint (second half)
+
+  const cp1x = exitPt.x    + kCircle * t1.x;   const cp1y = exitPt.y    + kCircle * t1.y;
+  const cp2x = midX        - kMid1   * avgX;   const cp2y = midY        - kMid1   * avgY;
+  const cp3x = midX        + kMid2   * avgX;   const cp3y = midY        + kMid2   * avgY;
+  const cp4x = nextEntry.x - kCircle * t2.x;   const cp4y = nextEntry.y - kCircle * t2.y;
+
+  return (
+    `C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(midX)} ${f(midY)} ` +
+    `C ${f(cp3x)} ${f(cp3y)} ${f(cp4x)} ${f(cp4y)} ${f(nextEntry.x)} ${f(nextEntry.y)} `
+  );
 }
 
 function buildPath(cs) {
@@ -320,7 +358,7 @@ function buildPath(cs) {
 
     // Connector key: ordered circle IDs
     const key = `${c.id}_${nc.id}`;
-    d += connectorCmd(exitPt, c, nextEntry, nc, getT(key));
+    d += connectorCmd(exitPt, c, nextEntry, nc, getT(key), ctr);
 
     // Stable midpoint handle position (geometric midpoint of tangent points)
     segMeta.push({
