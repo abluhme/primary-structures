@@ -303,15 +303,17 @@ function connectorCmd(exitPt, c, nextEntry, nc, flow, ctr) {
   if (avgL > 1e-6) { avgX /= avgL; avgY /= avgL; }
   else             { avgX  = ux;   avgY  = uy;   }
 
-  // Handle lengths
-  const kCircle = segLen * 0.30;       // arc–connector junction handles
-  const kMid1   = d1L * 0.40;          // handle into midpoint (first half)
-  const kMid2   = d2L * 0.40;          // handle out of midpoint (second half)
+  // Handle lengths — 1/3 of each half-segment.
+  // Provably loop-free: cp1 and cp2 can never cross (k1 + k1 = 2/3 of d1L < d1L).
+  // Previously kCircle was set to segLen*0.30 regardless of midpoint position,
+  // which caused the connector to overshoot and fold back over the arc.
+  const k1 = d1L / 3;   // handles for first segment  (exitPt → mid)
+  const k2 = d2L / 3;   // handles for second segment (mid → nextEntry)
 
-  const cp1x = exitPt.x    + kCircle * t1.x;   const cp1y = exitPt.y    + kCircle * t1.y;
-  const cp2x = midX        - kMid1   * avgX;   const cp2y = midY        - kMid1   * avgY;
-  const cp3x = midX        + kMid2   * avgX;   const cp3y = midY        + kMid2   * avgY;
-  const cp4x = nextEntry.x - kCircle * t2.x;   const cp4y = nextEntry.y - kCircle * t2.y;
+  const cp1x = exitPt.x    + k1 * t1.x;   const cp1y = exitPt.y    + k1 * t1.y;
+  const cp2x = midX        - k1 * avgX;   const cp2y = midY        - k1 * avgY;
+  const cp3x = midX        + k2 * avgX;   const cp3y = midY        + k2 * avgY;
+  const cp4x = nextEntry.x - k2 * t2.x;   const cp4y = nextEntry.y - k2 * t2.y;
 
   return (
     `C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(midX)} ${f(midY)} ` +
