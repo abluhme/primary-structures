@@ -2,7 +2,7 @@
 
 A browser-based tool for designing geometric kidney-like forms, built from overlapping circles connected by tangent-smooth Bézier curves.
 
-**[Open the tool →](https://axelbluhme.github.io/primary-structures/)**
+**[Open the tool →](https://abluhme.github.io/primary-structures/)**
 
 ---
 
