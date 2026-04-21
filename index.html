@@ -9,7 +9,7 @@
 
 /* ── Tokens ─────────────────────────────────────────────── */
 :root {
-  --bg:    #F0EDE6;
+  --bg:    #FFFFFF;
   --ink:   #0D0D0D;
   --red:   #E61919;
   --dim:   #888;
@@ -732,7 +732,7 @@ function draw() {
     const wLabelW = ctx.measureText(wLabel).width + 8;
     const wLabelX = bx + bw / 2;
     const wLabelY = wy + tick + 8;
-    ctx.fillStyle = 'rgba(240,237,230,0.9)';
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.fillRect(wLabelX - wLabelW / 2, wLabelY - 6, wLabelW, 12);
     ctx.fillStyle = dimText;
     ctx.fillText(wLabel, wLabelX, wLabelY);
@@ -762,7 +762,7 @@ function draw() {
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     const hLabelW = ctx.measureText(hLabel).width + 8;
-    ctx.fillStyle = 'rgba(240,237,230,0.9)';
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.fillRect(-hLabelW / 2, -6, hLabelW, 12);
     ctx.fillStyle = dimText;
     ctx.fillText(hLabel, 0, 0);
@@ -793,7 +793,7 @@ function draw() {
     // Radius handle — square
     const hx = c.x+c.r, hy = c.y, hs = 5;
     ctx.beginPath(); ctx.rect(hx-hs/2, hy-hs/2, hs, hs);
-    ctx.fillStyle = sel ? '#E61919' : '#F0EDE6';
+    ctx.fillStyle = sel ? '#E61919' : '#FFFFFF';
     ctx.strokeStyle = sel ? '#E61919' : 'rgba(13,13,13,0.35)';
     ctx.lineWidth = sel ? 1.5 : 1;
     ctx.fill(); ctx.stroke();
@@ -810,7 +810,7 @@ function draw() {
     ctx.rotate(Math.PI/4);
     ctx.beginPath();
     ctx.rect(-size/2, -size/2, size, size);
-    ctx.fillStyle   = isSel ? '#E61919' : hasCurve ? 'rgba(13,13,13,0.55)' : '#F0EDE6';
+    ctx.fillStyle   = isSel ? '#E61919' : hasCurve ? 'rgba(13,13,13,0.55)' : '#FFFFFF';
     ctx.strokeStyle = isSel ? '#E61919' : 'rgba(13,13,13,0.4)';
     ctx.lineWidth   = 1;
     ctx.fill();
