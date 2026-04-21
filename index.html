@@ -955,18 +955,18 @@ function draw() {
 
 // ── Interaction ────────────────────────────────────────────────────────────────
 
-function hitTestConnector(x, y) {
+function hitTestConnector(x, y, hitR=10) {
   for (const seg of lastSegs) {
-    if (Math.hypot(x-seg.mid.x, y-seg.mid.y) <= 10) return seg.key;
+    if (Math.hypot(x-seg.mid.x, y-seg.mid.y) <= hitR) return seg.key;
   }
   return null;
 }
 
-function hitTestCircle(x, y) {
+function hitTestCircle(x, y, hitR=10) {
   for (let i=circles.length-1; i>=0; i--) {
     const c=circles[i];
-    if (Math.hypot(x-(c.x+c.r), y-c.y) <= 10) return {type:'radius', id:c.id};
-    if (Math.hypot(x-c.x, y-c.y) <= 10)        return {type:'center', id:c.id};
+    if (Math.hypot(x-(c.x+c.r), y-c.y) <= hitR) return {type:'radius', id:c.id};
+    if (Math.hypot(x-c.x, y-c.y) <= hitR)        return {type:'center', id:c.id};
   }
   for (let i=circles.length-1; i>=0; i--) {
     const c=circles[i];
@@ -976,15 +976,21 @@ function hitTestCircle(x, y) {
 }
 
 function evtPos(e) {
-  const r=canvas.getBoundingClientRect(), s=e.touches?e.touches[0]:e;
-  return {x:s.clientX-r.left, y:s.clientY-r.top};
+  const r = canvas.getBoundingClientRect();
+  // touches[0] is empty on touchend — use changedTouches as fallback
+  const s = (e.touches && e.touches.length) ? e.touches[0]
+          : (e.changedTouches && e.changedTouches.length) ? e.changedTouches[0]
+          : e;
+  return { x: s.clientX - r.left, y: s.clientY - r.top };
 }
 
 function onPointerDown(e) {
   const {x,y} = evtPos(e);
-  const connKey = hitTestConnector(x,y);
+  const isTouch = !!e.touches;
+  const hitR = isTouch ? 30 : 10;
+  const connKey = hitTestConnector(x, y, hitR);
   if (connKey) { selectConnector(connKey); return; }
-  const hit = hitTestCircle(x,y);
+  const hit = hitTestCircle(x, y, hitR);
   if (hit) {
     const c = circles.find(c=>c.id===hit.id);
     dragging = {...hit, sx:x, sy:y, cx:c.x, cy:c.y, cr:c.r};
@@ -997,10 +1003,13 @@ function onPointerDown(e) {
 function onPointerMove(e) {
   const {x,y} = evtPos(e);
   if (!dragging) {
-    const connKey = hitTestConnector(x,y);
-    if (connKey) { canvas.style.cursor = 'pointer'; return; }
-    const hit = hitTestCircle(x,y);
-    canvas.style.cursor = hit ? (hit.type==='center'?'grab':'ew-resize') : 'crosshair';
+    // cursor hints only matter for mouse
+    if (!e.touches) {
+      const connKey = hitTestConnector(x,y);
+      if (connKey) { canvas.style.cursor = 'pointer'; return; }
+      const hit = hitTestCircle(x,y);
+      canvas.style.cursor = hit ? (hit.type==='center'?'grab':'ew-resize') : 'crosshair';
+    }
     return;
   }
   const dx=x-dragging.sx, dy=y-dragging.sy;
