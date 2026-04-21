@@ -251,41 +251,62 @@ function cwTan(pt, center) {
   return { x: ry/len, y: -rx/len };
 }
 
-// Cubic Bézier connector that:
-//  • Leaves exitPt tangent to circle c  (G1 continuity)
-//  • Arrives at nextEntry tangent to circle nc (G1 continuity)
-//  • Interior control points are pulled inward by `tension` (0..1)
+// Two-segment cubic Bézier connector.
+//
+// Splits at a midpoint anchor that can be pulled inward.
+// Each half has ONE tangent handle fixed to the circle tangent direction —
+// those handles never move, so G1 tangency with the arcs is always preserved.
+// Only the shared midpoint (and its symmetric handles) shift inward with tension.
+//
+//  exitPt ──[cp1]──────[cp2]── mid ──[cp3]──────[cp4]── nextEntry
+//           along t1            ↑                         along t2
+//                           pulled inward
+//
 function connectorCmd(exitPt, c, nextEntry, nc, tension, ctr) {
-  const segDx = nextEntry.x-exitPt.x, segDy = nextEntry.y-exitPt.y;
+  const segDx = nextEntry.x - exitPt.x, segDy = nextEntry.y - exitPt.y;
   const segLen = Math.hypot(segDx, segDy);
   if (segLen < 1e-6) return `L ${f(nextEntry.x)} ${f(nextEntry.y)} `;
 
-  // Short tangent handles — preserve G1 with the arc at both ends
+  // Unit vector along the straight segment (used for mid-point handles)
+  const ux = segDx / segLen, uy = segDy / segLen;
+
+  // CW tangents at the circle attachment points — these never change
   const t1 = cwTan(exitPt,    c);
   const t2 = cwTan(nextEntry, nc);
-  const hLen = segLen * 0.25;    // handle length: 25% of segment
 
-  let cp1x = exitPt.x    + hLen * t1.x;
-  let cp1y = exitPt.y    + hLen * t1.y;
-  let cp2x = nextEntry.x - hLen * t2.x;
-  let cp2y = nextEntry.y - hLen * t2.y;
+  // Midpoint anchor — pulled inward by tension
+  const mx = (exitPt.x + nextEntry.x) / 2;
+  const my = (exitPt.y + nextEntry.y) / 2;
+  let midX = mx, midY = my;
 
   if (tension > 0) {
-    // Perpendicular to segment toward centroid = inward direction
-    const ux = segDx/segLen, uy = segDy/segLen;
-    const px = -uy, py = ux;
-    const mx = (exitPt.x+nextEntry.x)/2, my = (exitPt.y+nextEntry.y)/2;
-    const inward = (px*(ctr.x-mx) + py*(ctr.y-my)) > 0 ? 1 : -1;
-    const disp = tension * segLen * 0.65;
-    // Displace interior control points inward — tangent handles stay on the circle,
-    // so G1 continuity is maintained while the middle of the curve bows inward.
-    cp1x += inward * px * disp;
-    cp1y += inward * py * disp;
-    cp2x += inward * px * disp;
-    cp2y += inward * py * disp;
+    const px = -uy, py = ux;   // left-hand perpendicular to segment
+    const inward = (px * (ctr.x - mx) + py * (ctr.y - my)) > 0 ? 1 : -1;
+    const disp = tension * segLen * 0.5;
+    midX = mx + inward * px * disp;
+    midY = my + inward * py * disp;
   }
 
-  return `C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(nextEntry.x)} ${f(nextEntry.y)} `;
+  // Handle lengths
+  const kCircle = segLen * 0.28;                             // at circle endpoints
+  const kMid    = Math.hypot(midX - exitPt.x, midY - exitPt.y) * 0.38; // at midpoint
+
+  // Segment 1: exitPt → mid
+  //   cp1 is strictly along the circle tangent — guarantees G1
+  //   cp2 arrives at mid along the straight-segment direction
+  const cp1x = exitPt.x + kCircle * t1.x,  cp1y = exitPt.y + kCircle * t1.y;
+  const cp2x = midX      - kMid    * ux,    cp2y = midY     - kMid    * uy;
+
+  // Segment 2: mid → nextEntry
+  //   cp3 departs mid along same axis (G1 at mid)
+  //   cp4 is strictly along the circle tangent in reverse — guarantees G1
+  const cp3x = midX      + kMid    * ux,    cp3y = midY     + kMid    * uy;
+  const cp4x = nextEntry.x - kCircle * t2.x, cp4y = nextEntry.y - kCircle * t2.y;
+
+  return (
+    `C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(midX)} ${f(midY)} ` +
+    `C ${f(cp3x)} ${f(cp3y)} ${f(cp4x)} ${f(cp4y)} ${f(nextEntry.x)} ${f(nextEntry.y)} `
+  );
 }
 
 function buildPath(cs) {
