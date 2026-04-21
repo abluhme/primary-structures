@@ -129,11 +129,18 @@ body::after {
   user-select: none;
   border-bottom: 1px solid rgba(13,13,13,0.07);
   border-left: 3px solid transparent;
-  transition: color 0.08s, border-left-color 0.08s;
+  transition: color            120ms cubic-bezier(0.23,1,0.32,1),
+              border-left-color 120ms cubic-bezier(0.23,1,0.32,1),
+              opacity           80ms  ease-out;
 }
 
 .circle-item:last-child { border-bottom: none; }
-.circle-item:hover { color: var(--ink); }
+
+@media (hover: hover) and (pointer: fine) {
+  .circle-item:hover { color: var(--ink); }
+}
+
+.circle-item:active { opacity: 0.55; }
 .circle-item.active { color: var(--ink); border-left-color: var(--red); }
 
 .c-num {
@@ -171,10 +178,16 @@ body::after {
   text-transform: uppercase;
   cursor: pointer;
   text-align: left;
-  transition: background 0.08s, color 0.08s;
+  transition: background 140ms cubic-bezier(0.23,1,0.32,1),
+              color      140ms cubic-bezier(0.23,1,0.32,1),
+              transform  100ms ease-out;
 }
 
-.s-btn:hover { background: var(--ink); color: var(--bg); }
+@media (hover: hover) and (pointer: fine) {
+  .s-btn:hover { background: var(--ink); color: var(--bg); }
+}
+
+.s-btn:active { transform: scale(0.97); }
 
 .s-btn.ghost {
   color: var(--dim);
@@ -183,7 +196,9 @@ body::after {
   border-bottom: var(--rule);
 }
 
-.s-btn.ghost:hover { background: transparent; color: var(--red); }
+@media (hover: hover) and (pointer: fine) {
+  .s-btn.ghost:hover { background: transparent; color: var(--red); }
+}
 
 /* Property panels */
 .prop-section {
@@ -248,7 +263,14 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--red);
   border-radius: 0;
   cursor: pointer;
+  transition: transform 100ms ease-out;
 }
+
+@media (hover: hover) and (pointer: fine) {
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.4); }
+}
+
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); }
 
 input[type="range"]::-moz-range-thumb {
   width: 10px;
@@ -257,6 +279,7 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 0;
   cursor: pointer;
   border: none;
+  transition: transform 100ms ease-out;
 }
 
 input[type="number"] {
@@ -312,10 +335,15 @@ input[type="number"]:focus {
   text-transform: uppercase;
   cursor: pointer;
   text-align: left;
-  transition: background 0.08s;
+  transition: background 140ms cubic-bezier(0.23,1,0.32,1),
+              transform   100ms ease-out;
 }
 
-.export-btn:hover { background: var(--red); }
+@media (hover: hover) and (pointer: fine) {
+  .export-btn:hover { background: var(--red); }
+}
+
+.export-btn:active { transform: scale(0.98); }
 
 #status {
   font-size: 7.5px;
