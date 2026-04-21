@@ -253,55 +253,70 @@ function cwTan(pt, center) {
 
 // Two-segment cubic Bézier connector.
 //
-// Splits at a midpoint anchor that can be pulled inward.
-// Each half has ONE tangent handle fixed to the circle tangent direction —
-// those handles never move, so G1 tangency with the arcs is always preserved.
-// Only the shared midpoint (and its symmetric handles) shift inward with tension.
+// Splits at a midpoint anchor that is pulled inward by tension.
+// The circle-end handles (cp1, cp4) are pinned along the CW tangent and
+// never move — G1 with the arcs is unconditionally preserved.
 //
-//  exitPt ──[cp1]──────[cp2]── mid ──[cp3]──────[cp4]── nextEntry
-//           along t1            ↑                         along t2
-//                           pulled inward
+// The maximum safe inward displacement is computed analytically:
+//   • Condition A: dot(t1, mid − exitPt)  > 0
+//     (midpoint must stay in the forward half-plane of the exit tangent)
+//   • Condition B: dot(t2, nextEntry − mid) > 0
+//     (midpoint must stay in the forward half-plane of the entry tangent)
+// When either condition would be violated the Bézier loops, breaking G1.
+// tension=1.0 maps to exactly the safe maximum — the slider is clamped.
 //
 function connectorCmd(exitPt, c, nextEntry, nc, tension, ctr) {
   const segDx = nextEntry.x - exitPt.x, segDy = nextEntry.y - exitPt.y;
   const segLen = Math.hypot(segDx, segDy);
   if (segLen < 1e-6) return `L ${f(nextEntry.x)} ${f(nextEntry.y)} `;
 
-  // Unit vector along the straight segment (used for mid-point handles)
   const ux = segDx / segLen, uy = segDy / segLen;
 
-  // CW tangents at the circle attachment points — these never change
+  // CW tangents — pinned, never displaced
   const t1 = cwTan(exitPt,    c);
   const t2 = cwTan(nextEntry, nc);
 
-  // Midpoint anchor — pulled inward by tension
+  // Geometric midpoint (displacement base)
   const mx = (exitPt.x + nextEntry.x) / 2;
   const my = (exitPt.y + nextEntry.y) / 2;
   let midX = mx, midY = my;
 
   if (tension > 0) {
-    const px = -uy, py = ux;   // left-hand perpendicular to segment
+    // Inward perpendicular (toward centroid)
+    const px = -uy, py = ux;
     const inward = (px * (ctr.x - mx) + py * (ctr.y - my)) > 0 ? 1 : -1;
-    const disp = tension * segLen * 0.5;
+
+    // ── Compute max safe displacement ──────────────────────────────────────
+    // For each condition (A, B): A_val + slope * disp > 0
+    // If slope < 0, then disp < A_val / |slope|.
+
+    // Condition A: dot(t1, mid − exitPt) > 0
+    const A_val = t1.x*(mx - exitPt.x) + t1.y*(my - exitPt.y);
+    const A_slope = inward * (t1.x*px + t1.y*py);
+
+    // Condition B: dot(t2, nextEntry − mid) > 0
+    const B_val = t2.x*(nextEntry.x - mx) + t2.y*(nextEntry.y - my);
+    const B_slope = -inward * (t2.x*px + t2.y*py);
+
+    // Default cap: keeps visible curve without going extreme on unconstrained segs
+    let dispMax = segLen * 0.42;
+    if (A_slope < 0) dispMax = Math.min(dispMax, A_val > 0 ? A_val / -A_slope : 0);
+    if (B_slope < 0) dispMax = Math.min(dispMax, B_val > 0 ? B_val / -B_slope : 0);
+
+    // tension=1 → 95% of the safe limit (small visual margin before boundary)
+    const disp = tension * dispMax * 0.95;
     midX = mx + inward * px * disp;
     midY = my + inward * py * disp;
   }
 
   // Handle lengths
-  const kCircle = segLen * 0.28;                             // at circle endpoints
-  const kMid    = Math.hypot(midX - exitPt.x, midY - exitPt.y) * 0.38; // at midpoint
+  const kCircle = segLen * 0.28;
+  const kMid    = Math.hypot(midX - exitPt.x, midY - exitPt.y) * 0.38;
 
-  // Segment 1: exitPt → mid
-  //   cp1 is strictly along the circle tangent — guarantees G1
-  //   cp2 arrives at mid along the straight-segment direction
-  const cp1x = exitPt.x + kCircle * t1.x,  cp1y = exitPt.y + kCircle * t1.y;
-  const cp2x = midX      - kMid    * ux,    cp2y = midY     - kMid    * uy;
-
-  // Segment 2: mid → nextEntry
-  //   cp3 departs mid along same axis (G1 at mid)
-  //   cp4 is strictly along the circle tangent in reverse — guarantees G1
-  const cp3x = midX      + kMid    * ux,    cp3y = midY     + kMid    * uy;
-  const cp4x = nextEntry.x - kCircle * t2.x, cp4y = nextEntry.y - kCircle * t2.y;
+  const cp1x = exitPt.x    + kCircle * t1.x,  cp1y = exitPt.y    + kCircle * t1.y;
+  const cp2x = midX         - kMid    * ux,    cp2y = midY        - kMid    * uy;
+  const cp3x = midX         + kMid    * ux,    cp3y = midY        + kMid    * uy;
+  const cp4x = nextEntry.x  - kCircle * t2.x,  cp4y = nextEntry.y - kCircle * t2.y;
 
   return (
     `C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(midX)} ${f(midY)} ` +
