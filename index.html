@@ -5,184 +5,461 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Primary Structures</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Tokens ─────────────────────────────────────────────── */
+:root {
+  --bg:    #F0EDE6;
+  --ink:   #0D0D0D;
+  --red:   #E61919;
+  --dim:   #888;
+  --faint: rgba(13,13,13,0.07);
+  --rule:  1px solid #0D0D0D;
+  --rule2: 2px solid #0D0D0D;
+  --mono:  'Space Mono', 'Courier New', monospace;
+  --head:  'Archivo Black', Impact, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; overflow: hidden; }
 
 body {
-  background: #f5f3ee;
-  color: #111;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 10px;
   display: flex;
-  height: 100vh;
+  letter-spacing: 0.05em;
+}
+
+/* Mechanical grain overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 250px 250px;
+  opacity: 0.028;
+  mix-blend-mode: multiply;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+#sidebar {
+  width: 232px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: var(--rule2);
+  background: var(--bg);
   overflow: hidden;
 }
 
-/* ── Sidebar ─────────────────────────────────────────── */
-#sidebar {
-  width: 216px;
-  background: #0c0c0c;
-  border-right: 1px solid #1e1e1e;
+/* Header */
+.s-head {
+  padding: 16px 16px 0;
+  border-bottom: var(--rule2);
+}
+
+.s-logo {
+  font-family: var(--head);
+  font-size: clamp(22px, 2vw, 28px);
+  line-height: 0.88;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 9px;
+}
+
+.s-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: var(--rule);
+  padding: 5px 0 8px;
+}
+
+.s-meta span {
+  font-size: 7.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.s-meta .tag { color: var(--dim); }
+.s-meta .rev { color: var(--red); }
+
+/* Section headers */
+.s-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 16px;
+  border-bottom: var(--rule);
+}
+
+.s-label {
+  font-size: 7.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.s-label-r {
+  font-size: 7.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* Circle list */
+.circle-list {
   display: flex;
   flex-direction: column;
-  padding: 28px 18px 20px;
-  gap: 0;
+  border-bottom: var(--rule);
+}
+
+.circle-item {
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+  border-bottom: 1px solid rgba(13,13,13,0.07);
+  border-left: 3px solid transparent;
+  transition: color 0.08s, border-left-color 0.08s;
+}
+
+.circle-item:last-child { border-bottom: none; }
+.circle-item:hover { color: var(--ink); }
+.circle-item.active { color: var(--ink); border-left-color: var(--red); }
+
+.c-num {
+  font-size: 7.5px;
+  letter-spacing: 0.12em;
+  color: var(--red);
+  width: 18px;
   flex-shrink: 0;
 }
-.s-logo {
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  color: #3a3a3a;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-.s-title {
-  font-family: 'EB Garamond', Georgia, serif;
-  font-size: 18px;
-  font-weight: 400;
-  font-style: italic;
-  color: #c8c4bc;
-  line-height: 1.2;
-  margin-bottom: 24px;
-}
-.s-rule { height: 1px; background: #1e1e1e; margin: 0 0 18px; }
-.s-label {
+
+.c-name { flex: 1; }
+
+.c-val {
   font-size: 8.5px;
-  font-weight: 500;
-  letter-spacing: 0.15em;
-  color: #3a3a3a;
-  text-transform: uppercase;
-  margin-bottom: 10px;
+  color: var(--dim);
+  letter-spacing: 0.05em;
 }
+
+.circle-item.active .c-val { color: var(--ink); }
+
+/* Buttons */
 .s-btn {
-  background: transparent;
-  border: 1px solid #2a2a2a;
-  color: #666;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 12px;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  letter-spacing: 0.04em;
-  text-align: left;
-  transition: border-color 0.15s, color 0.15s;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   width: 100%;
-  margin-bottom: 18px;
-}
-.s-btn:hover { border-color: #555; color: #ccc; }
-.s-btn.ghost { border-color: transparent; color: #3a3a3a; margin-bottom: 0; }
-.s-btn.ghost:hover { color: #c0392b; }
-.s-btn.export-btn { border-color: #2a2a2a; color: #555; font-size: 11px; letter-spacing: 0.06em; margin-bottom: 0; }
-.s-btn.export-btn:hover { border-color: #888; color: #ccc; }
-
-.circle-list { display: flex; flex-direction: column; gap: 1px; margin-bottom: 18px; }
-.circle-item {
-  padding: 6px 8px;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: var(--rule);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   cursor: pointer;
-  font-size: 12px;
-  color: #444;
+  text-align: left;
+  transition: background 0.08s, color 0.08s;
+}
+
+.s-btn:hover { background: var(--ink); color: var(--bg); }
+
+.s-btn.ghost {
+  color: var(--dim);
+  font-size: 8px;
+  padding: 6px 16px;
+  border-bottom: var(--rule);
+}
+
+.s-btn.ghost:hover { background: transparent; color: var(--red); }
+
+/* Property panels */
+.prop-section {
+  border-bottom: var(--rule);
+}
+
+.prop-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 16px;
+  border-bottom: var(--rule);
+  background: var(--faint);
+}
+
+.prop-head span:first-child {
+  font-size: 7.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.prop-head span:last-child {
+  font-size: 7.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+
+.prop-row {
   display: flex;
   align-items: center;
-  gap: 9px;
-  transition: color 0.1s;
-  letter-spacing: 0.02em;
-  user-select: none;
-  border-left: 1px solid transparent;
+  gap: 8px;
+  padding: 7px 16px;
 }
-.circle-item:hover { color: #aaa; }
-.circle-item.active { color: #d0ccc4; border-left-color: #555; }
-.c-num { font-family: 'Space Mono', 'Courier New', monospace; font-size: 9px; color: #2e2e2e; width: 14px; flex-shrink: 0; }
-.circle-item.active .c-num { color: #666; }
 
-.prop-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
-.prop-row { display: flex; align-items: center; gap: 8px; }
-.prop-row .p-label { font-size: 10px; color: #3a3a3a; width: 48px; flex-shrink: 0; letter-spacing: 0.04em; }
+.prop-row .p-label {
+  font-size: 7.5px;
+  color: var(--dim);
+  width: 36px;
+  flex-shrink: 0;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
 
+/* Sliders — hard square thumb */
 input[type="range"] {
-  flex: 1; -webkit-appearance: none; height: 1px; background: #333; outline: none; cursor: pointer;
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  background: var(--ink);
+  outline: none;
+  cursor: pointer;
+  border-radius: 0;
 }
+
 input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 9px; height: 9px; background: #888;
-  border-radius: 50%; cursor: pointer; transition: background 0.1s;
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  background: var(--red);
+  border-radius: 0;
+  cursor: pointer;
 }
-input[type="range"]::-webkit-slider-thumb:hover { background: #ccc; }
+
+input[type="range"]::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  background: var(--red);
+  border-radius: 0;
+  cursor: pointer;
+  border: none;
+}
+
 input[type="number"] {
-  width: 44px; background: transparent; border: none;
-  border-bottom: 1px solid #2a2a2a; color: #666; padding: 2px 4px;
-  font-family: 'Space Mono', 'Courier New', monospace; font-size: 10px;
-  text-align: right; outline: none; transition: border-color 0.1s;
+  width: 38px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(13,13,13,0.35);
+  color: var(--ink);
+  padding: 1px 2px;
+  font-family: var(--mono);
+  font-size: 9px;
+  text-align: right;
+  outline: none;
+  letter-spacing: 0.04em;
 }
-input[type="number"]:focus { border-bottom-color: #555; color: #aaa; }
 
-.s-hint { font-size: 9px; color: #2a2a2a; line-height: 1.6; letter-spacing: 0.03em; }
-#status { font-size: 9px; color: #2a2a2a; line-height: 1.7; letter-spacing: 0.04em; margin-top: 10px; }
+input[type="number"]:focus {
+  border-bottom-color: var(--red);
+  color: var(--red);
+}
 
-/* ── Canvas ──────────────────────────────────────────── */
-#canvas-area { flex: 1; position: relative; overflow: hidden; background: #f5f3ee; }
+.s-hint {
+  font-size: 7.5px;
+  color: var(--dim);
+  letter-spacing: 0.08em;
+  line-height: 1.7;
+  text-transform: uppercase;
+  padding: 6px 16px;
+}
+
+.s-rule { height: 1px; background: var(--ink); }
+
+/* Footer */
+.s-footer {
+  margin-top: auto;
+  border-top: var(--rule2);
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--ink);
+  border: none;
+  border-bottom: var(--rule);
+  color: var(--bg);
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.08s;
+}
+
+.export-btn:hover { background: var(--red); }
+
+#status {
+  font-size: 7.5px;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  line-height: 1.8;
+}
+
+/* ── Canvas ──────────────────────────────────────────────── */
+#canvas-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* Scanline texture */
+#canvas-area::before {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(13,13,13,0.013) 3px,
+    rgba(13,13,13,0.013) 4px
+  );
+}
+
+/* Registration frame */
+#canvas-area::after {
+  content: '';
+  position: absolute;
+  inset: 14px 14px 30px 14px;
+  border: 1px solid rgba(13,13,13,0.1);
+  pointer-events: none;
+  z-index: 1;
+}
+
 canvas { display: block; }
+
+/* Bottom status bar */
 .hint {
-  position: absolute; bottom: 18px; right: 22px; font-size: 9.5px;
-  color: #c8c5bf; white-space: nowrap; pointer-events: none;
-  letter-spacing: 0.06em; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 5px 16px;
+  font-family: var(--mono);
+  font-size: 7.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  pointer-events: none;
+  border-top: var(--rule);
+  background: var(--bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+}
+
+.hint-r {
+  color: rgba(13,13,13,0.28);
+  font-size: 7px;
+  letter-spacing: 0.16em;
 }
 </style>
 </head>
 <body>
 
+<!-- ── Sidebar ──────────────────────────────────────────── -->
 <div id="sidebar">
-  <div class="s-logo">Primary Structures</div>
-  <div class="s-title">Testing Table Tool</div>
 
-  <div class="s-rule"></div>
+  <div class="s-head">
+    <div class="s-logo">Primary<br>Structures</div>
+    <div class="s-meta">
+      <span class="tag">[ Testing Table ]</span>
+      <span class="rev">REV 4.1</span>
+    </div>
+  </div>
 
-  <div class="s-label">Circles</div>
+  <div class="s-section-head">
+    <span class="s-label">/// Geometry</span>
+    <span class="s-label-r">Nodes</span>
+  </div>
+
   <div class="circle-list" id="circleList"></div>
-  <button class="s-btn" id="btnAdd">＋ &thinsp;Add Circle</button>
 
-  <div class="s-rule"></div>
+  <button class="s-btn" id="btnAdd">+ &thinsp;Add Node</button>
 
   <!-- Circle properties -->
   <div class="prop-section" id="circleProps" style="display:none">
-    <div class="s-label">Circle</div>
+    <div class="prop-head">
+      <span>[ Node ] Radius</span>
+      <span>● Edit</span>
+    </div>
     <div class="prop-row">
-      <span class="p-label">Radius</span>
+      <span class="p-label">R</span>
       <input type="range" id="radiusSlider" min="15" max="280" value="80">
       <input type="number" id="radiusInput" min="15" max="280" value="80">
     </div>
-    <button class="s-btn ghost" id="btnDelete">— &thinsp;Remove</button>
+    <button class="s-btn ghost" id="btnDelete">— &thinsp;Remove Node</button>
   </div>
 
   <!-- Connector properties -->
   <div class="prop-section" id="connectorProps" style="display:none">
-    <div class="s-label">Connector</div>
+    <div class="prop-head">
+      <span>[ Connector ] Flow</span>
+      <span>● Edit</span>
+    </div>
     <div class="prop-row">
       <span class="p-label">Flow</span>
       <input type="range" id="curveSlider" min="0" max="100" value="0">
       <input type="number" id="curveInput" min="0" max="100" value="0">
     </div>
-    <div class="s-hint" id="connectorHint">click a connector handle to adjust its curve</div>
+    <div class="s-hint" id="connectorHint">&gt;&gt;&nbsp; Select ◆ to adjust flow</div>
   </div>
 
   <!-- Nothing selected -->
   <div id="nothingProps" class="s-hint" style="display:none">
-    Click a circle or connector handle
+    &gt;&gt;&nbsp; Select a node or connector
   </div>
 
   <div class="s-rule" id="propRule" style="display:none"></div>
 
-  <div style="margin-top:auto; display:flex; flex-direction:column; gap:0">
-    <div class="s-rule"></div>
-    <button class="s-btn export-btn" id="btnExport">↓ &thinsp;Export SVG</button>
+  <div class="s-footer">
+    <button class="export-btn" id="btnExport">↓ &thinsp;Export / SVG</button>
     <div id="status"></div>
   </div>
 </div>
 
+<!-- ── Canvas ───────────────────────────────────────────── -->
 <div id="canvas-area">
   <canvas id="canvas"></canvas>
-  <div class="hint">drag circle · drag edge to resize · click connector ◆ to adjust</div>
+  <div class="hint">
+    <span>Drag node &nbsp;///&nbsp; Edge to resize &nbsp;///&nbsp; ◆ connector to set flow</span>
+    <span class="hint-r">UNIT / D-01</span>
+  </div>
 </div>
 
 <script>
@@ -246,6 +523,7 @@ function externalTangents(c1, c2) {
 }
 
 // CW tangent at a point on a circle (screen y-down).
+// NOTE: returns the CCW direction in screen coords — negated when used as connector handles.
 function cwTan(pt, center) {
   const rx = pt.x-center.x, ry = pt.y-center.y, len = Math.hypot(rx,ry);
   return { x: ry/len, y: -rx/len };
@@ -255,17 +533,9 @@ function cwTan(pt, center) {
 //
 // The connector splits at an interior midpoint displaced inward (toward the
 // shape centroid). G1 at the two circle junctions is held by pinning cp1 and
-// cp4 along the CW circle tangents. G1 at the interior split is held by using
-// the ACTUAL direction to/from the displaced midpoint for cp2 and cp3 — not
-// the original chord direction (that was the bug in the previous version).
-//
-//   cp1  = exitPt   + kCircle · t1          (tangent to circle c)
-//   cp2  = mid − kMid · avgDir             (approaching mid from behind)
-//   mid  = chordMid + flow · disp · inward  (pulled toward centroid)
-//   cp3  = mid + kMid · avgDir             (leaving mid forward)
-//   cp4  = nextEntry − kCircle · t2         (tangent to circle nc)
-//
-// avgDir = normalise(unit(mid−exit) + unit(entry−mid))  → G1 at split
+// cp4 along the true arc-exit direction (-cwTan, verified by unit test).
+// G1 at the interior split is held by using the bisector of the actual
+// directions to/from the displaced midpoint for cp2 and cp3.
 //
 function connectorCmd(exitPt, c, nextEntry, nc, flow, ctr) {
   const segDx = nextEntry.x - exitPt.x, segDy = nextEntry.y - exitPt.y;
@@ -303,16 +573,12 @@ function connectorCmd(exitPt, c, nextEntry, nc, flow, ctr) {
   if (avgL > 1e-6) { avgX /= avgL; avgY /= avgL; }
   else             { avgX  = ux;   avgY  = uy;   }
 
-  // Handle lengths — 1/3 of each half-segment.
-  // Provably loop-free: cp1 and cp2 can never cross (k1 + k1 = 2/3 of d1L < d1L).
-  // Previously kCircle was set to segLen*0.30 regardless of midpoint position,
-  // which caused the connector to overshoot and fold back over the arc.
+  // Handle lengths: 1/3 of each half-segment (provably no-loop for θ < 48°)
   const k1 = d1L / 3;   // handles for first segment  (exitPt → mid)
   const k2 = d2L / 3;   // handles for second segment (mid → nextEntry)
 
-  // cwTan returns the CCW (not CW) tangent in screen-Y-down coords.
-  // Verified: at top of circle cwTan gives (-1,0) but CW traversal goes (+1,0).
-  // So the arc-exit direction is -cwTan, and handles must negate accordingly.
+  // cwTan returns CCW in screen-Y-down coords (verified: top of circle → (-1,0)
+  // but CW traversal goes (+1,0)). Arc-exit direction is -cwTan, so negate.
   const cp1x = exitPt.x    - k1 * t1.x;   const cp1y = exitPt.y    - k1 * t1.y;
   const cp2x = midX        - k1 * avgX;   const cp2y = midY        - k1 * avgY;
   const cp3x = midX        + k2 * avgX;   const cp3y = midY        + k2 * avgY;
@@ -361,11 +627,9 @@ function buildPath(cs) {
     if (i===0) d += `M ${f(entryPt.x)} ${f(entryPt.y)} `;
     d += `A ${f(c.r)} ${f(c.r)} 0 ${la} 1 ${f(exitPt.x)} ${f(exitPt.y)} `;
 
-    // Connector key: ordered circle IDs
     const key = `${c.id}_${nc.id}`;
     d += connectorCmd(exitPt, c, nextEntry, nc, getT(key), ctr);
 
-    // Stable midpoint handle position (geometric midpoint of tangent points)
     segMeta.push({
       key,
       mid: { x:(exitPt.x+nextEntry.x)/2, y:(exitPt.y+nextEntry.y)/2 },
@@ -383,12 +647,12 @@ function draw() {
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0,0,W,H);
 
-  // Graph-paper grid
+  // Engineering grid
   const gs = 24;
-  ctx.strokeStyle = 'rgba(0,0,0,0.055)'; ctx.lineWidth = 0.5;
+  ctx.strokeStyle = 'rgba(13,13,13,0.05)'; ctx.lineWidth = 0.5;
   for (let x=gs; x<W; x+=gs){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
   for (let y=gs; y<H; y+=gs){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
-  ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+  ctx.strokeStyle = 'rgba(13,13,13,0.1)';
   for (let x=gs*5; x<W; x+=gs*5){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
   for (let y=gs*5; y<H; y+=gs*5){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
 
@@ -399,51 +663,55 @@ function draw() {
 
   if (result) {
     const p2d = new Path2D(result.d);
-    ctx.fillStyle = 'rgba(0,0,0,0.04)';
+    ctx.fillStyle = 'rgba(13,13,13,0.04)';
     ctx.fill(p2d);
-    ctx.strokeStyle = '#1a1a1a';
+    ctx.strokeStyle = '#0D0D0D';
     ctx.lineWidth = 1.5;
     ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     ctx.stroke(p2d);
   }
 
-  // Circles
+  // Circle overlays
   circles.forEach(c => {
     const sel = c.id === selCircleId;
     ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
-    ctx.strokeStyle = sel ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.09)';
+    ctx.strokeStyle = sel ? 'rgba(13,13,13,0.25)' : 'rgba(13,13,13,0.09)';
     ctx.lineWidth = sel ? 1 : 0.75;
-    ctx.setLineDash(sel ? [4,4] : [3,5]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.setLineDash(sel ? [4,4] : [3,6]); ctx.stroke(); ctx.setLineDash([]);
 
     // Crosshair
-    const cs = 5;
-    ctx.strokeStyle = sel ? '#111' : 'rgba(0,0,0,0.25)'; ctx.lineWidth = sel?1.5:1;
+    const cs = 6;
+    ctx.strokeStyle = sel ? '#E61919' : 'rgba(13,13,13,0.22)';
+    ctx.lineWidth = sel ? 1.5 : 1;
     ctx.beginPath(); ctx.moveTo(c.x-cs,c.y); ctx.lineTo(c.x+cs,c.y); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(c.x,c.y-cs); ctx.lineTo(c.x,c.y+cs); ctx.stroke();
-    ctx.beginPath(); ctx.arc(c.x,c.y,sel?3:2,0,Math.PI*2);
-    ctx.fillStyle = sel?'#111':'rgba(0,0,0,0.3)'; ctx.fill();
 
-    // Radius handle
-    const hx=c.x+c.r, hy=c.y;
-    ctx.beginPath(); ctx.arc(hx,hy,4.5,0,Math.PI*2);
-    ctx.fillStyle = sel?'#f5f3ee':'rgba(245,243,238,0.9)';
-    ctx.strokeStyle = sel?'#111':'rgba(0,0,0,0.28)'; ctx.lineWidth=sel?1.5:1;
+    // Center dot
+    ctx.beginPath(); ctx.arc(c.x,c.y,sel?3:2,0,Math.PI*2);
+    ctx.fillStyle = sel ? '#E61919' : 'rgba(13,13,13,0.28)'; ctx.fill();
+
+    // Radius handle — square
+    const hx = c.x+c.r, hy = c.y, hs = 5;
+    ctx.beginPath(); ctx.rect(hx-hs/2, hy-hs/2, hs, hs);
+    ctx.fillStyle = sel ? '#E61919' : '#F0EDE6';
+    ctx.strokeStyle = sel ? '#E61919' : 'rgba(13,13,13,0.35)';
+    ctx.lineWidth = sel ? 1.5 : 1;
     ctx.fill(); ctx.stroke();
   });
 
-  // Connector midpoint handles — small diamonds
+  // Connector handles — diamonds
   lastSegs.forEach(seg => {
     const {mid, key} = seg;
-    const isSel  = key === selConnKey;
+    const isSel    = key === selConnKey;
     const hasCurve = getT(key) > 0.01;
-    const size = 4;
+    const size = 5;
     ctx.save();
     ctx.translate(mid.x, mid.y);
     ctx.rotate(Math.PI/4);
     ctx.beginPath();
     ctx.rect(-size/2, -size/2, size, size);
-    ctx.fillStyle   = isSel ? '#111' : hasCurve ? 'rgba(0,0,0,0.5)' : '#f5f3ee';
-    ctx.strokeStyle = isSel ? '#111' : 'rgba(0,0,0,0.35)';
+    ctx.fillStyle   = isSel ? '#E61919' : hasCurve ? 'rgba(13,13,13,0.55)' : '#F0EDE6';
+    ctx.strokeStyle = isSel ? '#E61919' : 'rgba(13,13,13,0.4)';
     ctx.lineWidth   = 1;
     ctx.fill();
     ctx.stroke();
@@ -480,12 +748,8 @@ function evtPos(e) {
 
 canvas.addEventListener('mousedown', e => {
   const {x,y} = evtPos(e);
-
-  // 1. Connector handles take priority
   const connKey = hitTestConnector(x,y);
   if (connKey) { selectConnector(connKey); return; }
-
-  // 2. Circle handles
   const hit = hitTestCircle(x,y);
   if (hit) {
     const c = circles.find(c=>c.id===hit.id);
@@ -493,8 +757,6 @@ canvas.addEventListener('mousedown', e => {
     selectCircle(hit.id);
     return;
   }
-
-  // 3. Click empty space
   clearSelection();
 });
 
@@ -547,14 +809,14 @@ function syncProps() {
   if (selCircleId) {
     const c = circles.find(c=>c.id===selCircleId);
     if (c) {
-      circEl.style.display = 'flex'; circEl.style.flexDirection='column'; circEl.style.gap='10px';
+      circEl.style.display = 'flex'; circEl.style.flexDirection='column'; circEl.style.gap='0';
       ruleEl.style.display = 'block';
       document.getElementById('radiusInput').value  = Math.round(c.r);
       document.getElementById('radiusSlider').value = Math.round(c.r);
     }
   } else if (selConnKey) {
     const t = Math.round(getT(selConnKey) * 100);
-    connEl.style.display = 'flex'; connEl.style.flexDirection='column'; connEl.style.gap='10px';
+    connEl.style.display = 'flex'; connEl.style.flexDirection='column'; connEl.style.gap='0';
     ruleEl.style.display = 'block';
     document.getElementById('curveSlider').value = t;
     document.getElementById('curveInput').value  = t;
@@ -564,7 +826,7 @@ function syncProps() {
   }
 
   document.getElementById('status').textContent =
-    `${circles.length} circle${circles.length!==1?'s':''} · ${lastSegs.length} connector${lastSegs.length!==1?'s':''}`;
+    `${circles.length} node${circles.length!==1?'s':''} · ${lastSegs.length} seg${lastSegs.length!==1?'s':''}`;
 }
 
 function updateList() {
@@ -575,8 +837,8 @@ function updateList() {
     item.className = 'circle-item' + (c.id===selCircleId?' active':'');
     item.innerHTML =
       `<span class="c-num">0${i+1}</span>` +
-      `<span>Circle ${i+1}</span>` +
-      `<span style="margin-left:auto;font-family:'Space Mono','Courier New',monospace;font-size:9px;color:#2e2e2e">${Math.round(c.r)}</span>`;
+      `<span class="c-name">Node ${i+1}</span>` +
+      `<span class="c-val">${Math.round(c.r)}</span>`;
     item.addEventListener('click', () => selectCircle(c.id));
     list.appendChild(item);
   });
@@ -585,8 +847,8 @@ function updateList() {
 
 function updateListRadii() {
   document.querySelectorAll('.circle-item').forEach((el,i) => {
-    const spans=el.querySelectorAll('span'), last=spans[spans.length-1];
-    if (last && circles[i]) last.textContent = Math.round(circles[i].r);
+    const val = el.querySelector('.c-val');
+    if (val && circles[i]) val.textContent = Math.round(circles[i].r);
   });
 }
 
@@ -643,7 +905,7 @@ document.getElementById('btnExport').addEventListener('click', () => {
      viewBox="${f(minX)} ${f(minY)} ${f(W)} ${f(H)}"
      width="${Math.round(W)}" height="${Math.round(H)}">
   <path d="${result.d}"
-        fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        fill="none" stroke="#0D0D0D" stroke-width="1.5"
         stroke-linejoin="round" stroke-linecap="round"/>
 </svg>`;
 
