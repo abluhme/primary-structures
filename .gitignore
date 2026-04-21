@@ -1,0 +1,6 @@
+# Ignore local design reference images
+*.png
+*.jpg
+*.jpeg
+kidney-shape-designer.html
+.DS_Store

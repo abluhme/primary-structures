@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Primary Structures</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #f5f3ee;
+  color: #111;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+#sidebar {
+  width: 216px;
+  background: #0c0c0c;
+  border-right: 1px solid #1e1e1e;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 18px 20px;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+.s-logo {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  color: #3a3a3a;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.s-title {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 18px;
+  font-weight: 400;
+  font-style: italic;
+  color: #c8c4bc;
+  line-height: 1.2;
+  margin-bottom: 24px;
+}
+
+.s-rule { height: 1px; background: #1e1e1e; margin: 0 0 18px; }
+
+.s-label {
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  color: #3a3a3a;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.s-btn {
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  color: #666;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  letter-spacing: 0.04em;
+  text-align: left;
+  transition: border-color 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  margin-bottom: 18px;
+}
+.s-btn:hover { border-color: #555; color: #ccc; }
+.s-btn.ghost { border-color: transparent; color: #3a3a3a; }
+.s-btn.ghost:hover { color: #c0392b; border-color: transparent; }
+.s-btn.export-btn {
+  border-color: #2a2a2a;
+  color: #555;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  margin-bottom: 0;
+}
+.s-btn.export-btn:hover { border-color: #888; color: #ccc; }
+
+.circle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 18px;
+}
+.circle-item {
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #444;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transition: color 0.1s;
+  letter-spacing: 0.02em;
+  user-select: none;
+  border-left: 1px solid transparent;
+}
+.circle-item:hover { color: #aaa; }
+.circle-item.active { color: #d0ccc4; border-left-color: #555; }
+.c-num {
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 9px;
+  color: #2e2e2e;
+  width: 14px;
+  flex-shrink: 0;
+}
+.circle-item.active .c-num { color: #666; }
+
+.prop-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.prop-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.prop-row .p-label {
+  font-size: 10px;
+  color: #3a3a3a;
+  width: 38px;
+  flex-shrink: 0;
+  letter-spacing: 0.05em;
+}
+
+input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 1px;
+  background: #333;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 9px;
+  height: 9px;
+  background: #888;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { background: #ccc; }
+
+input[type="number"] {
+  width: 48px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #2a2a2a;
+  color: #666;
+  padding: 2px 4px;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 10px;
+  text-align: right;
+  outline: none;
+  transition: border-color 0.1s;
+}
+input[type="number"]:focus { border-bottom-color: #555; color: #aaa; }
+
+#status {
+  font-size: 9px;
+  color: #2a2a2a;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  margin-top: 10px;
+}
+
+/* ── Canvas ──────────────────────────────────────────── */
+#canvas-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #f5f3ee;
+}
+canvas { display: block; }
+.hint {
+  position: absolute;
+  bottom: 18px;
+  right: 22px;
+  font-size: 9.5px;
+  color: #c8c5bf;
+  white-space: nowrap;
+  pointer-events: none;
+  letter-spacing: 0.06em;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="s-logo">Primary Structures</div>
+  <div class="s-title">Testing Table Tool</div>
+
+  <div class="s-rule"></div>
+
+  <div class="s-label">Circles</div>
+  <div class="circle-list" id="circleList"></div>
+
+  <button class="s-btn" id="btnAdd">＋ &thinsp;Add Circle</button>
+
+  <div class="s-rule"></div>
+
+  <div class="prop-section" id="circleProps" style="display:none">
+    <div class="s-label">Selected</div>
+    <div class="prop-row">
+      <span class="p-label">Radius</span>
+      <input type="range" id="radiusSlider" min="15" max="280" value="80">
+      <input type="number" id="radiusInput" min="15" max="280" value="80">
+    </div>
+    <button class="s-btn ghost" id="btnDelete" style="margin-bottom:0">— &thinsp;Remove</button>
+  </div>
+
+  <div class="s-rule" id="propRule" style="display:none"></div>
+
+  <div class="s-label">Flow</div>
+  <div class="prop-row" style="margin-bottom:18px">
+    <span class="p-label" style="width:52px;font-size:9px;color:#2e2e2e">Curvature</span>
+    <input type="range" id="curveSlider" min="0" max="100" value="35">
+    <input type="number" id="curveInput" min="0" max="100" value="35" style="width:40px">
+  </div>
+
+  <div class="s-rule"></div>
+
+  <button class="s-btn export-btn" id="btnExport">↓ &thinsp;Export SVG</button>
+  <div id="status">3 circles · tangent profile</div>
+</div>
+
+<div id="canvas-area">
+  <canvas id="canvas"></canvas>
+  <div class="hint">drag center · drag edge to resize</div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const area = document.getElementById('canvas-area');
+
+let circles = [];
+let selectedId = null;
+let nextId = 1;
+let dragging = null;
+let curveTension = 0.35;
+
+// ── Resize ───────────────────────────────────────────────────────────────────
+function resize() {
+  canvas.width  = area.clientWidth;
+  canvas.height = area.clientHeight;
+  draw();
+}
+window.addEventListener('resize', resize);
+
+function init() {
+  resize();
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  circles = [
+    { id: nextId++, x: cx - 95, y: cy + 15,  r: 100 },
+    { id: nextId++, x: cx + 75, y: cy - 45,  r: 82  },
+    { id: nextId++, x: cx + 10, y: cy + 95,  r: 65  },
+  ];
+  updateList();
+  draw();
+}
+
+// ── Geometry ──────────────────────────────────────────────────────────────────
+
+function centroid(cs) {
+  return {
+    x: cs.reduce((s, c) => s + c.x, 0) / cs.length,
+    y: cs.reduce((s, c) => s + c.y, 0) / cs.length,
+  };
+}
+
+function sortCW(cs) {
+  const ctr = centroid(cs);
+  return [...cs].sort((a, b) =>
+    Math.atan2(a.y - ctr.y, a.x - ctr.x) - Math.atan2(b.y - ctr.y, b.x - ctr.x)
+  );
+}
+
+function externalTangents(c1, c2) {
+  const dx = c2.x - c1.x, dy = c2.y - c1.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 1e-6) return null;
+  const cosA = (c1.r - c2.r) / dist;
+  if (Math.abs(cosA) > 1) return null;
+  const sinA = Math.sqrt(1 - cosA * cosA);
+  const ux = dx / dist, uy = dy / dist;
+  const vx = -uy, vy = ux;
+  return [1, -1].map(s => {
+    const nx = cosA * ux + s * sinA * vx;
+    const ny = cosA * uy + s * sinA * vy;
+    return {
+      p1: { x: c1.x + c1.r * nx, y: c1.y + c1.r * ny },
+      p2: { x: c2.x + c2.r * nx, y: c2.y + c2.r * ny },
+    };
+  });
+}
+
+// CW tangent at pt on circle with given center (screen y-down coords).
+function cwTan(pt, center) {
+  const rx = pt.x - center.x, ry = pt.y - center.y;
+  const len = Math.hypot(rx, ry);
+  return { x: ry / len, y: -rx / len };
+}
+
+function buildPath(cs, tension) {
+  if (cs.length < 2) return null;
+  const sorted = sortCW(cs);
+  const n      = sorted.length;
+  const ctr    = centroid(sorted);
+
+  const segs = [];
+  for (let i = 0; i < n; i++) {
+    const c1 = sorted[i], c2 = sorted[(i + 1) % n];
+    const ts = externalTangents(c1, c2);
+    if (!ts) return null;
+    const [t0, t1] = ts;
+    const m0x = (t0.p1.x + t0.p2.x) / 2, m0y = (t0.p1.y + t0.p2.y) / 2;
+    const m1x = (t1.p1.x + t1.p2.x) / 2, m1y = (t1.p1.y + t1.p2.y) / 2;
+    const d0 = (m0x - ctr.x) ** 2 + (m0y - ctr.y) ** 2;
+    const d1 = (m1x - ctr.x) ** 2 + (m1y - ctr.y) ** 2;
+    segs.push(d0 >= d1 ? t0 : t1);
+  }
+
+  let d = '';
+  for (let i = 0; i < n; i++) {
+    const c       = sorted[i];
+    const prevSeg = segs[(i - 1 + n) % n];
+    const curSeg  = segs[i];
+    const entryPt = prevSeg.p2;
+    const exitPt  = curSeg.p1;
+
+    // Arc on circle, CW on screen (sweep=1)
+    const a1   = Math.atan2(entryPt.y - c.y, entryPt.x - c.x);
+    const a2   = Math.atan2(exitPt.y  - c.y, exitPt.x  - c.x);
+    const daCW = ((a2 - a1) + 2 * Math.PI) % (2 * Math.PI);
+    const la   = daCW > Math.PI ? 1 : 0;
+
+    if (i === 0) d += `M ${f(entryPt.x)} ${f(entryPt.y)} `;
+    d += `A ${f(c.r)} ${f(c.r)} 0 ${la} 1 ${f(exitPt.x)} ${f(exitPt.y)} `;
+
+    // Cubic Bézier to next circle's entry — tension controls handle length.
+    const nextEntry = curSeg.p2;
+    const nc        = sorted[(i + 1) % n];
+    const t1v       = cwTan(exitPt,    c);
+    const t2v       = cwTan(nextEntry, nc);
+    const segLen    = Math.hypot(nextEntry.x - exitPt.x, nextEntry.y - exitPt.y);
+    const k         = tension * segLen;
+    const cp1 = { x: exitPt.x    + k * t1v.x, y: exitPt.y    + k * t1v.y };
+    const cp2 = { x: nextEntry.x - k * t2v.x, y: nextEntry.y - k * t2v.y };
+
+    d += `C ${f(cp1.x)} ${f(cp1.y)} ${f(cp2.x)} ${f(cp2.y)} ${f(nextEntry.x)} ${f(nextEntry.y)} `;
+  }
+  d += 'Z';
+  return d;
+}
+
+const f = n => n.toFixed(2);
+
+// ── Rendering ─────────────────────────────────────────────────────────────────
+
+function draw() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Graph-paper grid
+  const gs = 24;
+  ctx.strokeStyle = 'rgba(0,0,0,0.055)';
+  ctx.lineWidth = 0.5;
+  for (let x = gs; x < W; x += gs) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = gs; y < H; y += gs) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  // Major grid every 5 cells
+  ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+  ctx.lineWidth = 0.5;
+  for (let x = gs * 5; x < W; x += gs * 5) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = gs * 5; y < H; y += gs * 5) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  if (!circles.length) return;
+
+  // Build profile
+  const pathStr = buildPath(circles, curveTension);
+  if (pathStr) {
+    const p2d = new Path2D(pathStr);
+
+    // Fill — barely-there warm tint
+    ctx.fillStyle = 'rgba(0,0,0,0.04)';
+    ctx.fill(p2d);
+
+    // Main outline stroke
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth   = 1.5;
+    ctx.lineJoin    = 'round';
+    ctx.lineCap     = 'round';
+    ctx.stroke(p2d);
+  }
+
+  // Circle construction guides
+  circles.forEach(c => {
+    const sel = c.id === selectedId;
+
+    // Circle outline
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+    ctx.strokeStyle = sel ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.09)';
+    ctx.lineWidth   = sel ? 1 : 0.75;
+    ctx.setLineDash(sel ? [4, 4] : [3, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Center crosshair (architectural feel)
+    const cs = 5;
+    ctx.strokeStyle = sel ? '#111' : 'rgba(0,0,0,0.25)';
+    ctx.lineWidth   = sel ? 1.5 : 1;
+    ctx.beginPath(); ctx.moveTo(c.x - cs, c.y); ctx.lineTo(c.x + cs, c.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(c.x, c.y - cs); ctx.lineTo(c.x, c.y + cs); ctx.stroke();
+
+    // Center dot
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, sel ? 3 : 2, 0, Math.PI * 2);
+    ctx.fillStyle = sel ? '#111' : 'rgba(0,0,0,0.3)';
+    ctx.fill();
+
+    // Radius handle — small hollow circle at right edge
+    const hx = c.x + c.r, hy = c.y;
+    ctx.beginPath();
+    ctx.arc(hx, hy, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle   = sel ? '#f5f3ee' : 'rgba(245,243,238,0.9)';
+    ctx.strokeStyle = sel ? '#111' : 'rgba(0,0,0,0.28)';
+    ctx.lineWidth   = sel ? 1.5 : 1;
+    ctx.fill();
+    ctx.stroke();
+  });
+}
+
+// ── Interaction ────────────────────────────────────────────────────────────────
+
+function hitTest(x, y) {
+  for (let i = circles.length - 1; i >= 0; i--) {
+    const c = circles[i];
+    if (Math.hypot(x - (c.x + c.r), y - c.y) <= 10) return { type: 'radius', id: c.id };
+    if (Math.hypot(x - c.x, y - c.y) <= 10)          return { type: 'center', id: c.id };
+  }
+  for (let i = circles.length - 1; i >= 0; i--) {
+    const c = circles[i];
+    if ((x - c.x) ** 2 + (y - c.y) ** 2 <= c.r ** 2) return { type: 'center', id: c.id };
+  }
+  return null;
+}
+
+function evtPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const s = e.touches ? e.touches[0] : e;
+  return { x: s.clientX - r.left, y: s.clientY - r.top };
+}
+
+canvas.addEventListener('mousedown', e => {
+  const { x, y } = evtPos(e);
+  const hit = hitTest(x, y);
+  if (hit) {
+    const c = circles.find(c => c.id === hit.id);
+    dragging = { ...hit, sx: x, sy: y, cx: c.x, cy: c.y, cr: c.r };
+    selectCircle(hit.id);
+  } else {
+    selectCircle(null);
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  const { x, y } = evtPos(e);
+  if (!dragging) {
+    const hit = hitTest(x, y);
+    canvas.style.cursor = hit
+      ? (hit.type === 'center' ? 'grab' : 'ew-resize')
+      : 'crosshair';
+    return;
+  }
+  const dx = x - dragging.sx, dy = y - dragging.sy;
+  const c = circles.find(c => c.id === dragging.id);
+  if (!c) return;
+  if (dragging.type === 'center') {
+    c.x = dragging.cx + dx;
+    c.y = dragging.cy + dy;
+  } else {
+    c.r = Math.max(15, dragging.cr + dx);
+    syncProps();
+  }
+  updateListRadii();
+  draw();
+});
+
+canvas.addEventListener('mouseup',    () => { dragging = null; });
+canvas.addEventListener('mouseleave', () => { dragging = null; });
+
+// ── UI sync ────────────────────────────────────────────────────────────────────
+
+function selectCircle(id) {
+  selectedId = id;
+  syncProps();
+  updateList();
+  draw();
+}
+
+function syncProps() {
+  const el        = document.getElementById('circleProps');
+  const ruleEl    = document.getElementById('propRule');
+  if (selectedId) {
+    const c = circles.find(c => c.id === selectedId);
+    if (c) {
+      el.style.display     = 'flex';
+      el.style.flexDirection = 'column';
+      el.style.gap         = '10px';
+      ruleEl.style.display = 'block';
+      document.getElementById('radiusInput').value  = Math.round(c.r);
+      document.getElementById('radiusSlider').value = Math.round(c.r);
+    }
+  } else {
+    el.style.display     = 'none';
+    ruleEl.style.display = 'none';
+  }
+  document.getElementById('status').textContent =
+    `${circles.length} circle${circles.length !== 1 ? 's' : ''} — curvature ${Math.round(curveTension * 100)}%`;
+}
+
+function updateList() {
+  const list = document.getElementById('circleList');
+  list.innerHTML = '';
+  circles.forEach((c, i) => {
+    const item = document.createElement('div');
+    item.className = 'circle-item' + (c.id === selectedId ? ' active' : '');
+    item.innerHTML =
+      `<span class="c-num">0${i + 1}</span>` +
+      `<span>Circle ${i + 1}</span>` +
+      `<span style="margin-left:auto;font-family:'Space Mono','Courier New',monospace;font-size:9px;color:#2e2e2e">${Math.round(c.r)}</span>`;
+    item.addEventListener('click', () => selectCircle(c.id));
+    list.appendChild(item);
+  });
+  syncProps();
+}
+
+function updateListRadii() {
+  document.querySelectorAll('.circle-item').forEach((el, i) => {
+    const spans = el.querySelectorAll('span');
+    const last  = spans[spans.length - 1];
+    if (last && circles[i]) last.textContent = Math.round(circles[i].r);
+  });
+}
+
+// ── Controls ───────────────────────────────────────────────────────────────────
+
+document.getElementById('btnAdd').addEventListener('click', () => {
+  const cx = canvas.width  / 2 + (Math.random() - .5) * 200;
+  const cy = canvas.height / 2 + (Math.random() - .5) * 200;
+  circles.push({ id: nextId++, x: cx, y: cy, r: 70 });
+  selectCircle(circles[circles.length - 1].id);
+  updateList();
+  draw();
+});
+
+document.getElementById('btnDelete').addEventListener('click', () => {
+  if (!selectedId || circles.length <= 2) return;
+  circles    = circles.filter(c => c.id !== selectedId);
+  selectedId = null;
+  updateList();
+  draw();
+});
+
+document.getElementById('radiusSlider').addEventListener('input', e => {
+  if (!selectedId) return;
+  const c = circles.find(c => c.id === selectedId);
+  if (!c) return;
+  c.r = +e.target.value;
+  document.getElementById('radiusInput').value = c.r;
+  updateListRadii();
+  draw();
+});
+
+document.getElementById('radiusInput').addEventListener('input', e => {
+  if (!selectedId) return;
+  const c = circles.find(c => c.id === selectedId);
+  if (!c) return;
+  c.r = Math.max(15, Math.min(280, +e.target.value || 70));
+  document.getElementById('radiusSlider').value = c.r;
+  updateListRadii();
+  draw();
+});
+
+// Curvature / flow slider
+document.getElementById('curveSlider').addEventListener('input', e => {
+  curveTension = +e.target.value / 100;
+  document.getElementById('curveInput').value = e.target.value;
+  syncProps();
+  draw();
+});
+
+document.getElementById('curveInput').addEventListener('input', e => {
+  const v = Math.max(0, Math.min(100, +e.target.value || 0));
+  curveTension = v / 100;
+  document.getElementById('curveSlider').value = v;
+  syncProps();
+  draw();
+});
+
+// Export
+document.getElementById('btnExport').addEventListener('click', () => {
+  const pathStr = buildPath(circles, curveTension);
+  if (!pathStr) { alert('Need at least 2 non-overlapping circles.'); return; }
+
+  const pad  = 40;
+  const minX = Math.min(...circles.map(c => c.x - c.r)) - pad;
+  const minY = Math.min(...circles.map(c => c.y - c.r)) - pad;
+  const maxX = Math.max(...circles.map(c => c.x + c.r)) + pad;
+  const maxY = Math.max(...circles.map(c => c.y + c.r)) + pad;
+  const W = maxX - minX, H = maxY - minY;
+
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="${f(minX)} ${f(minY)} ${f(W)} ${f(H)}"
+     width="${Math.round(W)}" height="${Math.round(H)}">
+  <path d="${pathStr}"
+        fill="none"
+        stroke="#1a1a1a" stroke-width="1.5"
+        stroke-linejoin="round" stroke-linecap="round"/>
+</svg>`;
+
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'primary-structure.svg';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+init();
+</script>
+</body>
+</html>
