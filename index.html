@@ -310,10 +310,13 @@ function connectorCmd(exitPt, c, nextEntry, nc, flow, ctr) {
   const k1 = d1L / 3;   // handles for first segment  (exitPt → mid)
   const k2 = d2L / 3;   // handles for second segment (mid → nextEntry)
 
-  const cp1x = exitPt.x    + k1 * t1.x;   const cp1y = exitPt.y    + k1 * t1.y;
+  // cwTan returns the CCW (not CW) tangent in screen-Y-down coords.
+  // Verified: at top of circle cwTan gives (-1,0) but CW traversal goes (+1,0).
+  // So the arc-exit direction is -cwTan, and handles must negate accordingly.
+  const cp1x = exitPt.x    - k1 * t1.x;   const cp1y = exitPt.y    - k1 * t1.y;
   const cp2x = midX        - k1 * avgX;   const cp2y = midY        - k1 * avgY;
   const cp3x = midX        + k2 * avgX;   const cp3y = midY        + k2 * avgY;
-  const cp4x = nextEntry.x - k2 * t2.x;   const cp4y = nextEntry.y - k2 * t2.y;
+  const cp4x = nextEntry.x + k2 * t2.x;   const cp4y = nextEntry.y + k2 * t2.y;
 
   return (
     `C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(midX)} ${f(midY)} ` +
