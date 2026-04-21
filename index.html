@@ -232,8 +232,8 @@ canvas { display: block; }
   <div class="s-label">Flow</div>
   <div class="prop-row" style="margin-bottom:18px">
     <span class="p-label" style="width:52px;font-size:9px;color:#2e2e2e">Curvature</span>
-    <input type="range" id="curveSlider" min="0" max="100" value="35">
-    <input type="number" id="curveInput" min="0" max="100" value="35" style="width:40px">
+    <input type="range" id="curveSlider" min="0" max="100" value="0">
+    <input type="number" id="curveInput" min="0" max="100" value="0" style="width:40px">
   </div>
 
   <div class="s-rule"></div>
@@ -256,7 +256,7 @@ let circles = [];
 let selectedId = null;
 let nextId = 1;
 let dragging = null;
-let curveTension = 0.35;
+let curveTension = 0;
 
 // ── Resize ───────────────────────────────────────────────────────────────────
 function resize() {
@@ -313,13 +313,6 @@ function externalTangents(c1, c2) {
   });
 }
 
-// CW tangent at pt on circle with given center (screen y-down coords).
-function cwTan(pt, center) {
-  const rx = pt.x - center.x, ry = pt.y - center.y;
-  const len = Math.hypot(rx, ry);
-  return { x: ry / len, y: -rx / len };
-}
-
 function buildPath(cs, tension) {
   if (cs.length < 2) return null;
   const sorted = sortCW(cs);
@@ -356,17 +349,27 @@ function buildPath(cs, tension) {
     if (i === 0) d += `M ${f(entryPt.x)} ${f(entryPt.y)} `;
     d += `A ${f(c.r)} ${f(c.r)} 0 ${la} 1 ${f(exitPt.x)} ${f(exitPt.y)} `;
 
-    // Cubic Bézier to next circle's entry — tension controls handle length.
+    // Quadratic Bézier connector — control point pulled inward toward centroid.
+    // At tension=0 the control point sits at the segment midpoint (straight line).
+    // Increasing tension bows the midpoint toward the interior of the shape.
     const nextEntry = curSeg.p2;
-    const nc        = sorted[(i + 1) % n];
-    const t1v       = cwTan(exitPt,    c);
-    const t2v       = cwTan(nextEntry, nc);
-    const segLen    = Math.hypot(nextEntry.x - exitPt.x, nextEntry.y - exitPt.y);
-    const k         = tension * segLen;
-    const cp1 = { x: exitPt.x    + k * t1v.x, y: exitPt.y    + k * t1v.y };
-    const cp2 = { x: nextEntry.x - k * t2v.x, y: nextEntry.y - k * t2v.y };
+    const mx = (exitPt.x + nextEntry.x) / 2;
+    const my = (exitPt.y + nextEntry.y) / 2;
 
-    d += `C ${f(cp1.x)} ${f(cp1.y)} ${f(cp2.x)} ${f(cp2.y)} ${f(nextEntry.x)} ${f(nextEntry.y)} `;
+    // Perpendicular to the segment that points toward the centroid.
+    const segDx = nextEntry.x - exitPt.x, segDy = nextEntry.y - exitPt.y;
+    const segLen = Math.hypot(segDx, segDy);
+    let ctrl = { x: mx, y: my };
+    if (segLen > 1e-6) {
+      const ux = segDx / segLen, uy = segDy / segLen;
+      const px = -uy, py = ux; // left-hand perpendicular
+      // Dot with centroid direction to pick the inward side
+      const inward = (px * (ctr.x - mx) + py * (ctr.y - my)) > 0 ? 1 : -1;
+      const disp = tension * segLen * 0.5;
+      ctrl = { x: mx + inward * px * disp, y: my + inward * py * disp };
+    }
+
+    d += `Q ${f(ctrl.x)} ${f(ctrl.y)} ${f(nextEntry.x)} ${f(nextEntry.y)} `;
   }
   d += 'Z';
   return d;
