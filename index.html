@@ -424,11 +424,13 @@ canvas { display: block; }
   background: rgba(13,13,13,0.45);
   z-index: 99;
   opacity: 0;
+  pointer-events: none;   /* don't block canvas taps when invisible */
   transition: opacity 260ms cubic-bezier(0.32,0.72,0,1);
 }
 
 #drawer-backdrop.open {
   opacity: 1;
+  pointer-events: auto;
 }
 
 /* Toggle button — hidden on desktop */
@@ -494,13 +496,17 @@ canvas { display: block; }
     top: 0; left: 0;
     height: 100%;
     z-index: 100;
+    overflow-y: auto;
     transform: translateX(-100%);
-    transition: transform 300ms cubic-bezier(0.32,0.72,0,1);
+    /* exit: fast ease-out feels snappy when dismissing */
+    transition: transform 200ms cubic-bezier(0.23,1,0.32,1);
     box-shadow: 4px 0 24px rgba(13,13,13,0.18);
   }
 
   #sidebar.open {
     transform: translateX(0);
+    /* enter: iOS drawer curve gives weight coming in */
+    transition: transform 300ms cubic-bezier(0.32,0.72,0,1);
   }
 
   /* Canvas fills full width */
@@ -510,6 +516,18 @@ canvas { display: block; }
 
   /* Push hint text right so it doesn't sit under the toggle button */
   .hint { padding-left: 56px; }
+
+  /* Push sidebar logo below the fixed toggle button */
+  .s-head { padding-top: 56px; }
+}
+
+/* Honour reduced-motion preference — cut all drawer animation */
+@media (prefers-reduced-motion: reduce) {
+  #sidebar,
+  #sidebar.open,
+  #drawer-backdrop {
+    transition: none !important;
+  }
 }
 </style>
 </head>
@@ -615,6 +633,8 @@ const setT  = (k, v) => segTensions.set(k, v);
 let lastSegs = []; // [{key, mid, exitPt, nextEntry}]
 
 // ── Resize ───────────────────────────────────────────────────────────────────
+let _lastW = 0, _lastH = 0;
+
 function resize() {
   const dpr = window.devicePixelRatio || 1;
   const w = area.clientWidth, h = area.clientHeight;
@@ -623,6 +643,25 @@ function resize() {
   canvas.style.width  = w + 'px';
   canvas.style.height = h + 'px';
   ctx.scale(dpr, dpr);   // all draw() calls use CSS-pixel coords from here
+
+  // Re-centre shape if the canvas shrank drastically (e.g. desktop → mobile)
+  // or if any circle centre is more than 60 % outside the new viewport.
+  if (circles.length && (_lastW > 0 || _lastH > 0)) {
+    const tooFar = circles.some(c =>
+      c.x < -w * 0.6 || c.x > w * 1.6 || c.y < -h * 0.6 || c.y > h * 1.6
+    );
+    const shrunkALot = _lastW > 0 && w / _lastW < 0.6;
+    if (tooFar || shrunkALot) {
+      // Compute current centroid of the shape
+      const ox = circles.reduce((s,c) => s+c.x, 0) / circles.length;
+      const oy = circles.reduce((s,c) => s+c.y, 0) / circles.length;
+      const nx = w / 2, ny = h / 2;
+      const dx = nx - ox, dy = ny - oy;
+      circles.forEach(c => { c.x += dx; c.y += dy; });
+    }
+  }
+  _lastW = w; _lastH = h;
+
   draw();
 }
 window.addEventListener('resize', resize);
