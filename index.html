@@ -668,6 +668,100 @@ function draw() {
     ctx.stroke(p2d);
   }
 
+  // ── Bounding box + dimension lines ─────────────────────────────────────────
+  {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    circles.forEach(c => {
+      minX = Math.min(minX, c.x - c.r);
+      minY = Math.min(minY, c.y - c.r);
+      maxX = Math.max(maxX, c.x + c.r);
+      maxY = Math.max(maxY, c.y + c.r);
+    });
+
+    const pad  = 14;
+    const bx   = minX - pad,  by = minY - pad;
+    const bw   = (maxX - minX) + pad * 2;
+    const bh   = (maxY - minY) + pad * 2;
+    const wMM  = Math.round(maxX - minX);
+    const hMM  = Math.round(maxY - minY);
+    const ext  = 22;   // gap from bbox edge to dimension line
+    const tick = 4;    // half-tick length at dimension line ends
+
+    const dimStroke = 'rgba(13,13,13,0.38)';
+    const dimText   = 'rgba(13,13,13,0.58)';
+    const dimFont   = '9px "Space Mono","Courier New",monospace';
+
+    ctx.save();
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([]);
+
+    // Bounding box — solid grey
+    ctx.strokeStyle = dimStroke;
+    ctx.strokeRect(bx, by, bw, bh);
+
+    // ── Width dimension (below bbox) ────────────────────────────────────────
+    const wy = by + bh + ext;
+
+    ctx.strokeStyle = dimStroke;
+    ctx.beginPath();
+    // Left extension line
+    ctx.moveTo(bx,      by + bh + 3);  ctx.lineTo(bx,      wy + tick);
+    // Right extension line
+    ctx.moveTo(bx + bw, by + bh + 3);  ctx.lineTo(bx + bw, wy + tick);
+    // Dimension line
+    ctx.moveTo(bx,      wy);           ctx.lineTo(bx + bw, wy);
+    // End ticks
+    ctx.moveTo(bx,      wy - tick);    ctx.lineTo(bx,      wy + tick);
+    ctx.moveTo(bx + bw, wy - tick);    ctx.lineTo(bx + bw, wy + tick);
+    ctx.stroke();
+
+    // Width label — on a paper-coloured backing so it's legible over the grid
+    ctx.font         = dimFont;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    const wLabel  = `${wMM}mm`;
+    const wLabelW = ctx.measureText(wLabel).width + 8;
+    const wLabelX = bx + bw / 2;
+    const wLabelY = wy + tick + 8;
+    ctx.fillStyle = 'rgba(240,237,230,0.9)';
+    ctx.fillRect(wLabelX - wLabelW / 2, wLabelY - 6, wLabelW, 12);
+    ctx.fillStyle = dimText;
+    ctx.fillText(wLabel, wLabelX, wLabelY);
+
+    // ── Height dimension (right of bbox) ────────────────────────────────────
+    const hx = bx + bw + ext;
+
+    ctx.strokeStyle = dimStroke;
+    ctx.beginPath();
+    // Top extension line
+    ctx.moveTo(bx + bw + 3, by);      ctx.lineTo(hx + tick, by);
+    // Bottom extension line
+    ctx.moveTo(bx + bw + 3, by + bh); ctx.lineTo(hx + tick, by + bh);
+    // Dimension line
+    ctx.moveTo(hx, by);               ctx.lineTo(hx, by + bh);
+    // End ticks
+    ctx.moveTo(hx - tick, by);        ctx.lineTo(hx + tick, by);
+    ctx.moveTo(hx - tick, by + bh);   ctx.lineTo(hx + tick, by + bh);
+    ctx.stroke();
+
+    // Height label — rotated, same paper backing
+    const hLabel  = `${hMM}mm`;
+    ctx.save();
+    ctx.translate(hx + tick + 10, by + bh / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.font         = dimFont;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    const hLabelW = ctx.measureText(hLabel).width + 8;
+    ctx.fillStyle = 'rgba(240,237,230,0.9)';
+    ctx.fillRect(-hLabelW / 2, -6, hLabelW, 12);
+    ctx.fillStyle = dimText;
+    ctx.fillText(hLabel, 0, 0);
+    ctx.restore();
+
+    ctx.restore();
+  }
+
   // Circle overlays
   circles.forEach(c => {
     const sel = c.id === selCircleId;
