@@ -722,11 +722,13 @@ function cwTan(pt, center) {
 //
 // The connector splits at an interior midpoint displaced inward (toward the
 // shape centroid). G1 at the two circle junctions is held by pinning cp1 and
-// cp4 along the true arc-exit direction (-cwTan, verified by unit test).
-// G1 at the interior split is held by using the bisector of the actual
-// directions to/from the displaced midpoint for cp2 and cp3.
+// cp4 along the true arc-exit direction.
 //
-function connectorCmd(exitPt, c, nextEntry, nc, flow, ctr) {
+// For additive circles (CW arc):  arc-exit = -cwTan  → s = -1
+// For subtract circles (CCW arc): arc-exit = +cwTan  → s = +1
+// Similarly the arrival direction at the next circle flips when nc is subtract.
+//
+function connectorCmd(exitPt, c, nextEntry, nc, flow, ctr, cIsSub=false, ncIsSub=false) {
   const segDx = nextEntry.x - exitPt.x, segDy = nextEntry.y - exitPt.y;
   const segLen = Math.hypot(segDx, segDy);
   if (segLen < 1e-6) return `L ${f(nextEntry.x)} ${f(nextEntry.y)} `;
@@ -766,12 +768,15 @@ function connectorCmd(exitPt, c, nextEntry, nc, flow, ctr) {
   const k1 = d1L / 3;   // handles for first segment  (exitPt → mid)
   const k2 = d2L / 3;   // handles for second segment (mid → nextEntry)
 
-  // cwTan returns CCW in screen-Y-down coords (verified: top of circle → (-1,0)
-  // but CW traversal goes (+1,0)). Arc-exit direction is -cwTan, so negate.
-  const cp1x = exitPt.x    - k1 * t1.x;   const cp1y = exitPt.y    - k1 * t1.y;
-  const cp2x = midX        - k1 * avgX;   const cp2y = midY        - k1 * avgY;
-  const cp3x = midX        + k2 * avgX;   const cp3y = midY        + k2 * avgY;
-  const cp4x = nextEntry.x + k2 * t2.x;   const cp4y = nextEntry.y + k2 * t2.y;
+  // cwTan returns CCW in screen-Y-down coords.
+  // CW arc (additive): exit direction = -cwTan  → s1 = -1, s2 = +1
+  // CCW arc (subtract): exit direction = +cwTan → s1 = +1, s2 = -1
+  const s1 = cIsSub  ? +1 : -1;
+  const s2 = ncIsSub ? -1 : +1;
+  const cp1x = exitPt.x    + s1 * k1 * t1.x;   const cp1y = exitPt.y    + s1 * k1 * t1.y;
+  const cp2x = midX        - k1 * avgX;         const cp2y = midY        - k1 * avgY;
+  const cp3x = midX        + k2 * avgX;         const cp3y = midY        + k2 * avgY;
+  const cp4x = nextEntry.x + s2 * k2 * t2.x;   const cp4y = nextEntry.y + s2 * k2 * t2.y;
 
   return (
     `C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(midX)} ${f(midY)} ` +
@@ -807,17 +812,27 @@ function buildPath(cs) {
     const exitPt  = curSeg.p1;
     const nextEntry = curSeg.p2;
 
-    // Arc on circle, CW on screen (sweep=1)
-    const a1   = Math.atan2(entryPt.y-c.y, entryPt.x-c.x);
-    const a2   = Math.atan2(exitPt.y -c.y, exitPt.x -c.x);
-    const daCW = ((a2-a1)+2*Math.PI)%(2*Math.PI);
-    const la   = daCW > Math.PI ? 1 : 0;
+    const a1 = Math.atan2(entryPt.y-c.y, entryPt.x-c.x);
+    const a2 = Math.atan2(exitPt.y -c.y, exitPt.x -c.x);
 
     if (i===0) d += `M ${f(entryPt.x)} ${f(entryPt.y)} `;
-    d += `A ${f(c.r)} ${f(c.r)} 0 ${la} 1 ${f(exitPt.x)} ${f(exitPt.y)} `;
+
+    if (c.type === 'sub') {
+      // CCW arc — concave bite into the shape perimeter
+      const daCCW = ((a1-a2)+2*Math.PI)%(2*Math.PI);
+      const la = daCCW > Math.PI ? 1 : 0;
+      d += `A ${f(c.r)} ${f(c.r)} 0 ${la} 0 ${f(exitPt.x)} ${f(exitPt.y)} `;
+    } else {
+      // CW arc — convex bulge (existing behaviour)
+      const daCW = ((a2-a1)+2*Math.PI)%(2*Math.PI);
+      const la = daCW > Math.PI ? 1 : 0;
+      d += `A ${f(c.r)} ${f(c.r)} 0 ${la} 1 ${f(exitPt.x)} ${f(exitPt.y)} `;
+    }
 
     const key = `${c.id}_${nc.id}`;
-    const connCmd = connectorCmd(exitPt, c, nextEntry, nc, getT(key), ctr);
+    const cIsSub  = c.type  === 'sub';
+    const ncIsSub = nc.type === 'sub';
+    const connCmd = connectorCmd(exitPt, c, nextEntry, nc, getT(key), ctr, cIsSub, ncIsSub);
     d += connCmd;
     // Build a per-segment Path2D so touch hit-testing can use isPointInStroke
     const segPath = new Path2D(`M ${f(exitPt.x)} ${f(exitPt.y)} ` + connCmd);
@@ -851,35 +866,17 @@ function draw() {
 
   if (!circles.length) return;
 
-  // Split additive vs subtractive nodes
+  // Additive circles only — for bounding box and shape guard
   const addCircles = circles.filter(c => c.type !== 'sub');
-  const subCircles = circles.filter(c => c.type === 'sub');
 
-  const result = addCircles.length >= 2 ? buildPath(addCircles) : null;
+  // Build path from ALL circles: subtract nodes become CCW arcs (concave bites)
+  const result = circles.length >= 2 ? buildPath(circles) : null;
   lastSegs = result ? result.segMeta : [];
 
   if (result) {
     const p2d = new Path2D(result.d);
-
-    // 1. Fill the organic shape
     ctx.fillStyle = 'rgba(13,13,13,0.04)';
     ctx.fill(p2d);
-
-    // 2. Punch subtract-node holes (destination-out erases fill + grid beneath →
-    //    transparent canvas → white parent background shows = clean hole)
-    if (subCircles.length) {
-      ctx.save();
-      ctx.globalCompositeOperation = 'destination-out';
-      subCircles.forEach(c => {
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,0,0,1)';
-        ctx.fill();
-      });
-      ctx.restore();
-    }
-
-    // 3. Organic outline drawn on top of holes
     ctx.strokeStyle = '#0D0D0D';
     ctx.lineWidth = 1.5;
     ctx.lineJoin = 'round'; ctx.lineCap = 'round';
@@ -1293,8 +1290,8 @@ document.getElementById('btnToggleType').addEventListener('click', () => {
   if (!selCircleId) return;
   const c = circles.find(c=>c.id===selCircleId);
   if (!c) return;
-  // Guard: must always keep at least 2 additive nodes
-  if (c.type !== 'sub' && circles.filter(c=>c.type!=='sub').length <= 2) return;
+  // Guard: must always keep at least 1 additive node
+  if (c.type !== 'sub' && circles.filter(c=>c.type!=='sub').length <= 1) return;
   c.type = c.type === 'sub' ? 'add' : 'sub';
   updateList(); draw();
 });
@@ -1303,8 +1300,9 @@ document.getElementById('btnDelete').addEventListener('click', () => {
   if (!selCircleId) return;
   const c = circles.find(c=>c.id===selCircleId);
   if (!c) return;
-  // Subtract nodes can always be deleted; additive nodes need a minimum of 2
-  if (c.type !== 'sub' && circles.filter(c=>c.type!=='sub').length <= 2) return;
+  // Always keep at least 2 circles total; additive nodes also need 1 sibling additive
+  if (circles.length <= 2) return;
+  if (c.type !== 'sub' && circles.filter(c=>c.type!=='sub').length <= 1) return;
   circles=circles.filter(c=>c.id!==selCircleId);
   selCircleId=null; updateList(); draw();
 });
@@ -1334,34 +1332,24 @@ document.getElementById('curveInput').addEventListener('input', e => {
 });
 
 document.getElementById('btnExport').addEventListener('click', () => {
-  const addC = circles.filter(c => c.type !== 'sub');
-  const subC = circles.filter(c => c.type === 'sub');
-  const result = buildPath(addC);
-  if (!result) { alert('Need at least 2 non-overlapping nodes.'); return; }
+  const result = buildPath(circles);
+  if (!result) { alert('Need at least 2 circles.'); return; }
 
   const pad = 40;
-  const allForBounds = addC;
-  const minX = Math.min(...allForBounds.map(c=>c.x-c.r))-pad;
-  const minY = Math.min(...allForBounds.map(c=>c.y-c.r))-pad;
-  const maxX = Math.max(...allForBounds.map(c=>c.x+c.r))+pad;
-  const maxY = Math.max(...allForBounds.map(c=>c.y+c.r))+pad;
+  const addC = circles.filter(c => c.type !== 'sub');
+  const boundsC = addC.length ? addC : circles;
+  const minX = Math.min(...boundsC.map(c=>c.x-c.r))-pad;
+  const minY = Math.min(...boundsC.map(c=>c.y-c.r))-pad;
+  const maxX = Math.max(...boundsC.map(c=>c.x+c.r))+pad;
+  const maxY = Math.max(...boundsC.map(c=>c.y+c.r))+pad;
   const W = maxX-minX, H = maxY-minY;
 
-  // Build compound path: organic shape + subtract circles (even-odd = holes)
-  let compoundD = result.d;
-  subC.forEach(c => {
-    // Full-circle path as two arcs (SVG arc trick for closed circles)
-    compoundD += ` M ${f(c.x+c.r)} ${f(c.y)}` +
-      ` A ${f(c.r)} ${f(c.r)} 0 1 0 ${f(c.x-c.r)} ${f(c.y)}` +
-      ` A ${f(c.r)} ${f(c.r)} 0 1 0 ${f(c.x+c.r)} ${f(c.y)} Z`;
-  });
-
+  // The path already encodes subtract bites as CCW arcs — no post-processing needed
   const svg=`<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
      viewBox="${f(minX)} ${f(minY)} ${f(W)} ${f(H)}"
      width="${Math.round(W)}" height="${Math.round(H)}">
-  <path d="${compoundD}"
-        fill-rule="evenodd"
+  <path d="${result.d}"
         fill="none" stroke="#0D0D0D" stroke-width="1.5"
         stroke-linejoin="round" stroke-linecap="round"/>
 </svg>`;
