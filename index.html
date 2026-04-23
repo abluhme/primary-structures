@@ -142,6 +142,14 @@ body::after {
 
 .circle-item:active { opacity: 0.55; }
 .circle-item.active { color: var(--ink); border-left-color: var(--red); }
+.circle-item.is-sub .c-num { color: var(--red); opacity: 0.7; }
+.circle-item.is-sub.active .c-num { opacity: 1; }
+
+/* Add-hole button — red tint */
+.s-btn-hole { color: var(--red); }
+@media (hover: hover) and (pointer: fine) {
+  .s-btn-hole:hover { background: var(--red); color: var(--bg); }
+}
 
 .c-num {
   font-size: 7.5px;
@@ -560,11 +568,12 @@ canvas { display: block; }
   <div class="circle-list" id="circleList"></div>
 
   <button class="s-btn" id="btnAdd">+ &thinsp;Add Node</button>
+  <button class="s-btn s-btn-hole" id="btnAddHole">⊖ &thinsp;Add Hole</button>
 
   <!-- Circle properties -->
   <div class="prop-section" id="circleProps" style="display:none">
     <div class="prop-head">
-      <span>[ Node ] Radius</span>
+      <span id="circlePropsHead">[ Node ] Radius</span>
       <span>● Edit</span>
     </div>
     <div class="prop-row">
@@ -572,6 +581,7 @@ canvas { display: block; }
       <input type="range" id="radiusSlider" min="15" max="280" value="80">
       <input type="number" id="radiusInput" min="15" max="280" value="80">
     </div>
+    <button class="s-btn ghost" id="btnToggleType">⊖ &thinsp;Convert to Hole</button>
     <button class="s-btn ghost" id="btnDelete">— &thinsp;Remove Node</button>
   </div>
 
@@ -670,9 +680,9 @@ function init() {
   resize();
   const cx = area.clientWidth / 2, cy = area.clientHeight / 2;
   circles = [
-    { id: nextId++, x: cx - 95, y: cy + 15,  r: 100 },
-    { id: nextId++, x: cx + 75, y: cy - 45,  r: 82  },
-    { id: nextId++, x: cx + 10, y: cy + 95,  r: 65  },
+    { id: nextId++, x: cx - 95, y: cy + 15,  r: 100, type: 'add' },
+    { id: nextId++, x: cx + 75, y: cy - 45,  r: 82,  type: 'add' },
+    { id: nextId++, x: cx + 10, y: cy + 95,  r: 65,  type: 'add' },
   ];
   draw();        // populate lastSegs first
   updateList();  // syncProps can then read correct connector count
@@ -841,23 +851,46 @@ function draw() {
 
   if (!circles.length) return;
 
-  const result = buildPath(circles);
+  // Split additive vs subtractive nodes
+  const addCircles = circles.filter(c => c.type !== 'sub');
+  const subCircles = circles.filter(c => c.type === 'sub');
+
+  const result = addCircles.length >= 2 ? buildPath(addCircles) : null;
   lastSegs = result ? result.segMeta : [];
 
   if (result) {
     const p2d = new Path2D(result.d);
+
+    // 1. Fill the organic shape
     ctx.fillStyle = 'rgba(13,13,13,0.04)';
     ctx.fill(p2d);
+
+    // 2. Punch subtract-node holes (destination-out erases fill + grid beneath →
+    //    transparent canvas → white parent background shows = clean hole)
+    if (subCircles.length) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      subCircles.forEach(c => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+
+    // 3. Organic outline drawn on top of holes
     ctx.strokeStyle = '#0D0D0D';
     ctx.lineWidth = 1.5;
     ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     ctx.stroke(p2d);
   }
 
-  // ── Bounding box + dimension lines ─────────────────────────────────────────
+  // ── Bounding box + dimension lines (additive circles only) ─────────────────
   {
+    const bbSrc = addCircles.length ? addCircles : circles;
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    circles.forEach(c => {
+    bbSrc.forEach(c => {
       minX = Math.min(minX, c.x - c.r);
       minY = Math.min(minY, c.y - c.r);
       maxX = Math.max(maxX, c.x + c.r);
@@ -948,31 +981,51 @@ function draw() {
     ctx.restore();
   }
 
-  // Circle overlays
+  // Circle overlays — add nodes: grey dashed ring; subtract nodes: red dashed ring
   circles.forEach(c => {
-    const sel = c.id === selCircleId;
-    ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
-    ctx.strokeStyle = sel ? 'rgba(13,13,13,0.25)' : 'rgba(13,13,13,0.09)';
-    ctx.lineWidth = sel ? 1 : 0.75;
-    ctx.setLineDash(sel ? [4,4] : [3,6]); ctx.stroke(); ctx.setLineDash([]);
+    const sel   = c.id === selCircleId;
+    const isSub = c.type === 'sub';
+    const accent = '#E61919';
+    const subRing = sel ? 'rgba(230,25,25,0.65)' : 'rgba(230,25,25,0.35)';
+    const addRing = sel ? 'rgba(13,13,13,0.25)'  : 'rgba(13,13,13,0.09)';
 
-    // Crosshair
+    // Ring
+    ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+    ctx.strokeStyle = isSub ? subRing : addRing;
+    ctx.lineWidth   = sel ? 1.5 : (isSub ? 1 : 0.75);
+    ctx.setLineDash(isSub ? [5,3] : (sel ? [4,4] : [3,6]));
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // Crosshair / subtract marker
     const cs = 6;
-    ctx.strokeStyle = sel ? '#E61919' : 'rgba(13,13,13,0.22)';
-    ctx.lineWidth = sel ? 1.5 : 1;
-    ctx.beginPath(); ctx.moveTo(c.x-cs,c.y); ctx.lineTo(c.x+cs,c.y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(c.x,c.y-cs); ctx.lineTo(c.x,c.y+cs); ctx.stroke();
+    if (isSub) {
+      // Horizontal bar (the "minus" that means subtract)
+      ctx.strokeStyle = sel ? accent : 'rgba(230,25,25,0.55)';
+      ctx.lineWidth   = sel ? 2 : 1.5;
+      ctx.beginPath(); ctx.moveTo(c.x - cs, c.y); ctx.lineTo(c.x + cs, c.y); ctx.stroke();
+      // Faint vertical for centering reference
+      ctx.setLineDash([2, 3]);
+      ctx.lineWidth = 0.75;
+      ctx.beginPath(); ctx.moveTo(c.x, c.y - cs); ctx.lineTo(c.x, c.y + cs); ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = sel ? accent : 'rgba(13,13,13,0.22)';
+      ctx.lineWidth   = sel ? 1.5 : 1;
+      ctx.beginPath(); ctx.moveTo(c.x - cs, c.y); ctx.lineTo(c.x + cs, c.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(c.x, c.y - cs); ctx.lineTo(c.x, c.y + cs); ctx.stroke();
+    }
 
     // Center dot
-    ctx.beginPath(); ctx.arc(c.x,c.y,sel?3:2,0,Math.PI*2);
-    ctx.fillStyle = sel ? '#E61919' : 'rgba(13,13,13,0.28)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(c.x, c.y, sel ? 3 : 2, 0, Math.PI * 2);
+    ctx.fillStyle = (isSub || sel) ? accent : 'rgba(13,13,13,0.28)';
+    ctx.fill();
 
     // Radius handle — square
-    const hx = c.x+c.r, hy = c.y, hs = 5;
-    ctx.beginPath(); ctx.rect(hx-hs/2, hy-hs/2, hs, hs);
-    ctx.fillStyle = sel ? '#E61919' : '#FFFFFF';
-    ctx.strokeStyle = sel ? '#E61919' : 'rgba(13,13,13,0.35)';
-    ctx.lineWidth = sel ? 1.5 : 1;
+    const hx = c.x + c.r, hy = c.y, hs = 5;
+    ctx.beginPath(); ctx.rect(hx - hs/2, hy - hs/2, hs, hs);
+    ctx.fillStyle   = sel ? accent : '#FFFFFF';
+    ctx.strokeStyle = (isSub && !sel) ? 'rgba(230,25,25,0.45)' : (sel ? accent : 'rgba(13,13,13,0.35)');
+    ctx.lineWidth   = sel ? 1.5 : 1;
     ctx.fill(); ctx.stroke();
   });
 
@@ -1166,6 +1219,14 @@ function syncProps() {
       ruleEl.style.display = 'block';
       document.getElementById('radiusInput').value  = Math.round(c.r);
       document.getElementById('radiusSlider').value = Math.round(c.r);
+      // Update labels to reflect add vs subtract type
+      const isSub = c.type === 'sub';
+      document.getElementById('circlePropsHead').textContent =
+        isSub ? '[ Hole ] Radius' : '[ Node ] Radius';
+      document.getElementById('btnToggleType').textContent =
+        isSub ? '\u2295\u2009Convert to Node' : '\u2296\u2009Convert to Hole';
+      document.getElementById('btnDelete').textContent =
+        isSub ? '\u2014\u2009Remove Hole' : '\u2014\u2009Remove Node';
     }
   } else if (selConnKey) {
     const t = Math.round(getT(selConnKey) * 100);
@@ -1185,12 +1246,17 @@ function syncProps() {
 function updateList() {
   const list = document.getElementById('circleList');
   list.innerHTML = '';
-  circles.forEach((c,i) => {
+  let addIdx = 0, subIdx = 0;
+  circles.forEach(c => {
+    const isSub = c.type === 'sub';
+    if (isSub) subIdx++; else addIdx++;
+    const numLabel  = isSub ? `−${subIdx}` : `0${addIdx}`;
+    const nameLabel = isSub ? `Hole ${subIdx}` : `Node ${addIdx}`;
     const item = document.createElement('div');
-    item.className = 'circle-item' + (c.id===selCircleId?' active':'');
+    item.className = 'circle-item' + (c.id===selCircleId?' active':'') + (isSub?' is-sub':'');
     item.innerHTML =
-      `<span class="c-num">0${i+1}</span>` +
-      `<span class="c-name">Node ${i+1}</span>` +
+      `<span class="c-num">${numLabel}</span>` +
+      `<span class="c-name">${nameLabel}</span>` +
       `<span class="c-val">${Math.round(c.r)}</span>`;
     item.addEventListener('click', () => selectCircle(c.id));
     list.appendChild(item);
@@ -1208,14 +1274,37 @@ function updateListRadii() {
 // ── Controls ────────────────────────────────────────────────────────────────────
 
 document.getElementById('btnAdd').addEventListener('click', () => {
-  const cx=canvas.width/2+(Math.random()-.5)*200, cy=canvas.height/2+(Math.random()-.5)*200;
-  circles.push({id:nextId++, x:cx, y:cy, r:70});
+  const cx = area.clientWidth/2 + (Math.random()-.5)*200;
+  const cy = area.clientHeight/2 + (Math.random()-.5)*200;
+  circles.push({id:nextId++, x:cx, y:cy, r:70, type:'add'});
   selectCircle(circles[circles.length-1].id);
   updateList(); draw();
 });
 
+document.getElementById('btnAddHole').addEventListener('click', () => {
+  const cx = area.clientWidth/2 + (Math.random()-.5)*80;
+  const cy = area.clientHeight/2 + (Math.random()-.5)*80;
+  circles.push({id:nextId++, x:cx, y:cy, r:50, type:'sub'});
+  selectCircle(circles[circles.length-1].id);
+  updateList(); draw();
+});
+
+document.getElementById('btnToggleType').addEventListener('click', () => {
+  if (!selCircleId) return;
+  const c = circles.find(c=>c.id===selCircleId);
+  if (!c) return;
+  // Guard: must always keep at least 2 additive nodes
+  if (c.type !== 'sub' && circles.filter(c=>c.type!=='sub').length <= 2) return;
+  c.type = c.type === 'sub' ? 'add' : 'sub';
+  updateList(); draw();
+});
+
 document.getElementById('btnDelete').addEventListener('click', () => {
-  if (!selCircleId || circles.length<=2) return;
+  if (!selCircleId) return;
+  const c = circles.find(c=>c.id===selCircleId);
+  if (!c) return;
+  // Subtract nodes can always be deleted; additive nodes need a minimum of 2
+  if (c.type !== 'sub' && circles.filter(c=>c.type!=='sub').length <= 2) return;
   circles=circles.filter(c=>c.id!==selCircleId);
   selCircleId=null; updateList(); draw();
 });
@@ -1245,19 +1334,34 @@ document.getElementById('curveInput').addEventListener('input', e => {
 });
 
 document.getElementById('btnExport').addEventListener('click', () => {
-  const result = buildPath(circles);
-  if (!result) { alert('Need at least 2 non-overlapping circles.'); return; }
+  const addC = circles.filter(c => c.type !== 'sub');
+  const subC = circles.filter(c => c.type === 'sub');
+  const result = buildPath(addC);
+  if (!result) { alert('Need at least 2 non-overlapping nodes.'); return; }
 
-  const pad=40;
-  const minX=Math.min(...circles.map(c=>c.x-c.r))-pad, minY=Math.min(...circles.map(c=>c.y-c.r))-pad;
-  const maxX=Math.max(...circles.map(c=>c.x+c.r))+pad, maxY=Math.max(...circles.map(c=>c.y+c.r))+pad;
-  const W=maxX-minX, H=maxY-minY;
+  const pad = 40;
+  const allForBounds = addC;
+  const minX = Math.min(...allForBounds.map(c=>c.x-c.r))-pad;
+  const minY = Math.min(...allForBounds.map(c=>c.y-c.r))-pad;
+  const maxX = Math.max(...allForBounds.map(c=>c.x+c.r))+pad;
+  const maxY = Math.max(...allForBounds.map(c=>c.y+c.r))+pad;
+  const W = maxX-minX, H = maxY-minY;
+
+  // Build compound path: organic shape + subtract circles (even-odd = holes)
+  let compoundD = result.d;
+  subC.forEach(c => {
+    // Full-circle path as two arcs (SVG arc trick for closed circles)
+    compoundD += ` M ${f(c.x+c.r)} ${f(c.y)}` +
+      ` A ${f(c.r)} ${f(c.r)} 0 1 0 ${f(c.x-c.r)} ${f(c.y)}` +
+      ` A ${f(c.r)} ${f(c.r)} 0 1 0 ${f(c.x+c.r)} ${f(c.y)} Z`;
+  });
 
   const svg=`<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
      viewBox="${f(minX)} ${f(minY)} ${f(W)} ${f(H)}"
      width="${Math.round(W)}" height="${Math.round(H)}">
-  <path d="${result.d}"
+  <path d="${compoundD}"
+        fill-rule="evenodd"
         fill="none" stroke="#0D0D0D" stroke-width="1.5"
         stroke-linejoin="round" stroke-linecap="round"/>
 </svg>`;
